@@ -4,6 +4,9 @@ This add-on allows working with Keen.IO without requiring the Keen.IO SDK.
 It provides a service to send events. In the future, reading events will also be supported.
 The service also auto-combines your events to avoid multiple unnecessary requests. 
 
+This add-on was inspired by [ember-keen-tracking](https://github.com/plyfe/ember-keen-tracking),
+and the fact that it should not be necessary to include a library just to make a few Ajax-requests.
+
 ## Installation
 
 * `ember install ember-keen`
@@ -60,6 +63,8 @@ export default Ember.Route.extend({
 ```
 
 By default, `sendEvent` will debounce sending a request to the Keen.IO API by 5 seconds. 
+This means that if you send 10 events in 7 seconds via `sendEvent`, 
+only one actual request will be made to the Keen.IO API.
 If you want to send an event immediately, you can pass an optional third parameter `true`:
 
 ```js
