@@ -82,6 +82,33 @@ If you want to send an event immediately, you can pass an optional third paramet
 this.get('keen').sendEvent('button-click', { otherData: 1 }, true);
 ```
 
+You can also overwrite `mergeData` to return an object which will be merged with the data provided for every event
+sent via `sendEvent`:
+
+```js
+import KeenService from 'ember-keen/services/keen';
+
+export default KeenService.extend({
+  mergeData: Ember.computed('userSession', function() {
+    return {
+      currentUser: this.get('userSession.userId')
+    };
+  })
+});
+```
+
+With this configuration, the above request would result in the following data object sent to Keen.IO:
+
+```js
+{
+  otherData: 1,
+  somethingElse: 'foobar',
+  currentUser: 193
+}
+```
+
+Note that this will not work for `sendEvents`.
+
 ### sendEvents(data)
 
 You can also manually send multiple events add once with `sendEvents`:

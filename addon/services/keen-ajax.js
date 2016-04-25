@@ -18,7 +18,17 @@ export default AjaxService.extend({
    * @override
    * @public
    */
-  host: 'https://api.keen.io/3.0/projects',
+  host: 'https://api.keen.io',
+
+  /**
+   * The namespace for API requests.
+   *
+   * @property namespace
+   * @type {String}
+   * @override
+   * @public
+   */
+  namespace: '3.0/projects',
 
   /**
    * Override the post method to always use JSON content type.

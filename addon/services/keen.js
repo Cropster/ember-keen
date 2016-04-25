@@ -93,6 +93,19 @@ export default Ember.Service.extend({
   }),
 
   /**
+   * Overwrite this to add commonly used data to all events.
+   * The content of this will always be merged into the data sent to the event.
+   * This can be used for things like user id, ...
+   *
+   * @property mergeData
+   * @type {Object}
+   * @public
+   */
+  mergeData: computed(function() {
+    return {};
+  }),
+
+  /**
    * Actually send an event to Keen.IO.
    * See https://keen.io/docs/data-collection/
    *
@@ -108,11 +121,12 @@ export default Ember.Service.extend({
     if (!get(this, 'canWrite')) {
       return false;
     }
+    let mergeData = get(this, 'mergeData') || {};
     Ember.$.extend(data, {
       keen: {
         timestamp: new Date()
       }
-    });
+    }, mergeData);
     if (sendInstantly) {
       this._sendEvent(event, data);
       return true;
