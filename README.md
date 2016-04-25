@@ -38,38 +38,11 @@ var ENV = {
 }
 ```
 
-## Dependencies
-
-By default, ember-keen uses [ember-ajax](https://github.com/ember-cli/ember-ajax) to make requests to the Keen.IO API.
-However, if you do not want to include ember-ajax, you are free to overwrite the `_sendEvent` and `_sendEvents` functions
-in the keen-service:
-
-```js
-import Ember from 'ember';
-import KeenService from 'ember-keen/services/keen';
-
-export default KeenService.extend({
-  _sendEvent(event, data) {
-    let url = this._buildSendURL(event);  
-    return Ember.$.post({
-      url,
-      data
-    });
-  },
-  
-  _sendEvents(data) {
-      let url = this._buildSendURL(null);  
-      return Ember.$.post({
-        url,
-        data
-      });
-    },
-});
-```
-
 ## Usage
 
 You can manually track events with methods provided by the `keen`-service:
+
+### sendEvent(eventName, data, sendInstantly = false)
 
 ```js
 export default Ember.Route.extend({
@@ -92,6 +65,8 @@ If you want to send an event immediately, you can pass an optional third paramet
 ```js
 this.get('keen').sendEvent('button-click', { otherData: 1 }, true);
 ```
+
+### sendEvents(data)
 
 You can also manually send multiple events add once with `sendEvents`:
 
@@ -120,5 +95,34 @@ export default Ember.Route.extend(KeenTrackPageviewMixin, {
   beforeModel() {
     // If you use beforeModel, don't forget to run this._super(...arguments);
   }
+});
+```
+
+## Dependencies
+
+By default, ember-keen uses [ember-ajax](https://github.com/ember-cli/ember-ajax) to make requests to the Keen.IO API.
+However, if you do not want to include ember-ajax, you are free to overwrite the `_sendEvent` and `_sendEvents` functions
+in the keen-service:
+
+```js
+import Ember from 'ember';
+import KeenService from 'ember-keen/services/keen';
+
+export default KeenService.extend({
+  _sendEvent(event, data) {
+    let url = this._buildSendURL(event);  
+    return Ember.$.post({
+      url,
+      data
+    });
+  },
+  
+  _sendEvents(data) {
+      let url = this._buildSendURL(null);  
+      return Ember.$.post({
+        url,
+        data
+      });
+    },
 });
 ```

@@ -1,7 +1,7 @@
 {
   "name": "ember-keen",
-  "version": "0.0.0",
-  "description": "The default blueprint for ember-cli addons.",
+  "version": "0.1.0",
+  "description": "An Ember add-on to work with Keen.IO",
   "directories": {
     "doc": "doc",
     "test": "tests"
@@ -11,11 +11,11 @@
     "start": "ember server",
     "test": "ember try:testall"
   },
-  "repository": "",
+  "repository": "https://github.com/mydea/ember-keen",
   "engines": {
     "node": ">= 0.10.0"
   },
-  "author": "",
+  "author": "Francesco Novy <francesconovy@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "broccoli-asset-rev": "^2.4.2",
@@ -40,7 +40,10 @@
     "loader.js": "^4.0.1"
   },
   "keywords": [
-    "ember-addon"
+    "ember-addon",
+    "keen",
+    "keenio",
+    "keen.io"
   ],
   "dependencies": {
     "ember-ajax": "2.1.0",
