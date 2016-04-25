@@ -41,6 +41,17 @@ var ENV = {
 }
 ```
 
+Also, normally you will not want to have actual logging (to the Keen API) in your development environment. 
+For this purpose, you can enable logging requests to your console in your `config/environment.js`:
+
+```js
+ENV.keen = {
+  logRequests: true
+};
+```
+
+The service will then log all requests to the console, but only if `environment === 'development'`.
+
 ## Usage
 
 You can manually track events with methods provided by the `keen`-service:

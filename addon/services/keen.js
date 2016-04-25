@@ -80,6 +80,19 @@ export default Ember.Service.extend({
   _eventQueue: {},
 
   /**
+   * If requests should be logged to the console.
+   * This is true if environment is development & keen.logRequests = true in config/environment.js
+   *
+   * @property _shouldLogRequests
+   * @type {Boolean}
+   * @readOnly
+   * @private
+   */
+  _shouldLogRequests: computed(function() {
+    return get(config, 'environment') === 'development' && get(config, 'keen.logRequests');
+  }),
+
+  /**
    * Actually send an event to Keen.IO.
    * See https://keen.io/docs/data-collection/
    *
@@ -91,6 +104,7 @@ export default Ember.Service.extend({
    * @public
    */
   sendEvent(event, data = {}, sendInstantly = false) {
+    this._logRequest(event, data);
     if (!get(this, 'canWrite')) {
       return false;
     }
@@ -125,6 +139,7 @@ export default Ember.Service.extend({
    * @public
    */
   sendEvents(data) {
+    this._logRequest(null, data);
     if (!get(this, 'canWrite')) {
       return false;
     }
@@ -181,6 +196,21 @@ export default Ember.Service.extend({
         withCredentials: false
       }
     });
+  },
+
+  /**
+   * Log a request to the console.
+   * A request will only be logged if environment === development & keen.logRequests = true in config/environment.js
+   *
+   * @method _logRequest
+   * @param {String} event The event name to log, or null if multiple events are logged
+   * @param {Object} data
+   * @private
+   */
+  _logRequest(event, data) {
+    if (get(this, '_shouldLogRequests')) {
+      Ember.Logger.info('Keen Track:', event, data);
+    }
   },
 
   /**
