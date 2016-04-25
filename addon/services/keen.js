@@ -13,6 +13,13 @@ const { computed, get, getProperties, set } = Ember;
  */
 export default Ember.Service.extend({
 
+  /**
+   * The keen-ajax service, extending ember-ajax.
+   *
+   * @property keenAjax
+   * @type {EmberKeen.Service.KeenAjax}
+   * @private
+   */
   keenAjax: Ember.inject.service(),
 
   /**

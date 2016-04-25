@@ -1,5 +1,13 @@
 import AjaxService from 'ember-ajax/services/ajax';
 
+/**
+ * A service extending ember-ajax to include Keen.IO specific connection settings.
+ *
+ * @namespace EmberKeen.Service
+ * @class KeenAjax
+ * @extends EmberAjax.Service.Ajax
+ * @public
+ */
 export default AjaxService.extend({
 
   /**
