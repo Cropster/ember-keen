@@ -27,8 +27,8 @@ dotEnv: {
 And add a file `.env` in your project's root folder with the following content:
 
 ```
-KEEN_PROJECT_ID: MY-ID
-KEEN_WRITE_KEY: MY-WRITE-KEY
+KEEN_PROJECT_ID=MY-ID
+KEEN_WRITE_KEY=MY-WRITE-KEY
 ```
 
 Alternatively, you can also just specify the keys in your `config/environment.js`:
