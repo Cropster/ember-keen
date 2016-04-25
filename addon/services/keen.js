@@ -3,6 +3,14 @@ import config from 'ember-get-config';
 
 const { computed, get, getProperties, set } = Ember;
 
+/**
+ * A service to work with the Keen.IO API.
+ *
+ * @namespace EmberKeen.Service
+ * @class Keen
+ * @extends Ember.Service
+ * @public
+ */
 export default Ember.Service.extend({
 
   keenAjax: Ember.inject.service(),
@@ -16,6 +24,7 @@ export default Ember.Service.extend({
    * @property queueTime
    * @type {Number}
    * @default 5000
+   * @public
    */
   queueTime: 5000,
 
@@ -72,6 +81,7 @@ export default Ember.Service.extend({
    * @param {Object} data JSON data to send together with the event
    * @param {Boolean} sendInstantly If set to true, do not add to queue but send event instantly
    * @returns {PromiseObject} A promise which resolves to the response value of Keen.IO, or true if sendInstantly is not set
+   * @public
    */
   sendEvent(event, data = {}, sendInstantly = false) {
     if (!get(this, 'canWrite')) {
@@ -90,7 +100,7 @@ export default Ember.Service.extend({
     if (get(queue, event)) {
       get(queue, event).pushObject(data);
     } else {
-      queue[event] = [data];
+      queue[event] = Ember.A([data]);
     }
     Ember.run.debounce(this, this._processQueue, get(this, 'queueTime'));
     return Ember.RSVP.resolve({});
@@ -104,6 +114,7 @@ export default Ember.Service.extend({
    * @method sendEvents
    * @param {Object} data The data to send
    * @return {PromiseObject} A promise which resolves to the response value of Keen.IO
+   * @public
    */
   sendEvents(data) {
     if (!get(this, 'canWrite')) {

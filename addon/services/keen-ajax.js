@@ -8,6 +8,7 @@ export default AjaxService.extend({
    * @property host
    * @type {String}
    * @override
+   * @public
    */
   host: 'https://api.keen.io/3.0/projects',
 
@@ -19,6 +20,7 @@ export default AjaxService.extend({
    * @param {Object} options
    * @override
    * @returns {PromiseObject}
+   * @public
    */
   post(url, options) {
     options = options || {};

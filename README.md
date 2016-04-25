@@ -85,6 +85,8 @@ this.get('keen').sendEvents({
 });
 ```
 
+### Mixin
+
 For your convenience, a mixin to track page views is also included. You can use it like this:
 
 ```js
