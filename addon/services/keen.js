@@ -80,12 +80,12 @@ export default Ember.Service.extend({
    * @param {String} event The name of the event collection
    * @param {Object} data JSON data to send together with the event
    * @param {Boolean} sendInstantly If set to true, do not add to queue but send event instantly
-   * @returns {PromiseObject} A promise which resolves to the response value of Keen.IO, or true if sendInstantly is not set
+   * @returns {Boolean} True if the event was sent/queued, otherwise false
    * @public
    */
   sendEvent(event, data = {}, sendInstantly = false) {
     if (!get(this, 'canWrite')) {
-      return Ember.RSVP.reject('Cannot write Keen.IO event.');
+      return false;
     }
     Ember.$.extend(data, {
       keen: {
@@ -93,7 +93,8 @@ export default Ember.Service.extend({
       }
     });
     if (sendInstantly) {
-      return this._sendEvent(event, data);
+      this._sendEvent(event, data);
+      return true;
     }
 
     let queue = get(this, '_eventQueue');
@@ -103,7 +104,7 @@ export default Ember.Service.extend({
       queue[event] = Ember.A([data]);
     }
     Ember.run.debounce(this, this._processQueue, get(this, 'queueTime'));
-    return Ember.RSVP.resolve({});
+    return true;
   },
 
   /**
@@ -113,14 +114,15 @@ export default Ember.Service.extend({
    *
    * @method sendEvents
    * @param {Object} data The data to send
-   * @return {PromiseObject} A promise which resolves to the response value of Keen.IO
+   * @return {Boolean} Returns true if the events were sent, otherwise false
    * @public
    */
   sendEvents(data) {
     if (!get(this, 'canWrite')) {
-      return Ember.RSVP.reject('Cannot write Keen.IO events.');
+      return false;
     }
-    return this._sendEvents(data);
+    this._sendEvents(data);
+    return true;
   },
 
   /**
