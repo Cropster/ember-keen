@@ -117,16 +117,19 @@ export default Ember.Service.extend({
    * @public
    */
   sendEvent(event, data = {}, sendInstantly = false) {
-    this._logRequest(event, data);
-    if (!get(this, 'canWrite')) {
-      return false;
-    }
     let mergeData = get(this, 'mergeData') || {};
     Ember.$.extend(data, {
       keen: {
         timestamp: new Date()
       }
     }, mergeData);
+
+    this._logRequest(event, data);
+
+    if (!get(this, 'canWrite')) {
+      return false;
+    }
+
     if (sendInstantly) {
       this._sendEvent(event, data);
       return true;
