@@ -153,6 +153,7 @@ You can change this behavior by overwriting the `_post()` method in the `keen`-S
 Below, you can see the default functionality.
 
 ```js
+// app/services/keen.js
 import Ember from 'ember';
 import KeenService from 'ember-keen/services/keen';
 
