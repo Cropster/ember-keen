@@ -148,29 +148,29 @@ export default Ember.Route.extend(KeenTrackPageviewMixin, {
 
 ## Dependencies
 
-By default, ember-keen uses [ember-ajax](https://github.com/ember-cli/ember-ajax) to make requests to the Keen.IO API.
-However, if you do not want to include ember-ajax, you are free to overwrite the `_sendEvent` and `_sendEvents` functions
-in the keen-service:
+ember-keen has no dependencies - it uses `Ember.$.ajax()` under the hood to send data to Keen.IO.
+You can change this behavior by overwriting the `_post()` method in the `keen`-Service. 
+Below, you can see the default functionality.
 
 ```js
 import Ember from 'ember';
 import KeenService from 'ember-keen/services/keen';
 
 export default KeenService.extend({
-  _sendEvent(event, data) {
-    let url = this._buildSendURL(event);  
-    return Ember.$.post({
+  _post(url, data) {
+    return Ember.$.ajax({
+      type: 'POST',
+      headers: {
+        Authorization: get(this, 'writeKey')
+      },
       url,
-      data
+      contentType: 'application/json',
+      xhrFields: {
+        withCredentials: false
+      },
+      data: JSON.stringify(data),
+      dataType: 'json'
     });
-  },
-  
-  _sendEvents(data) {
-      let url = this._buildSendURL(null);  
-      return Ember.$.post({
-        url,
-        data
-      });
-    },
+  }
 });
 ```

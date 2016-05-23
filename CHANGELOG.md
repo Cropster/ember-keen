@@ -1,5 +1,10 @@
 # Changelog
 
+v0.3.0
+
+* Remove ember-ajax dependency (use Ember.$.ajax instead)
+* Fix CORS issues with Keen-API
+
 v0.2.0
 
 * Change `sendEvent` & `sendEvents` methods to return true/false instead of a promise
