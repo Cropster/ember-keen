@@ -14,13 +14,13 @@ const { computed, get, getProperties, set } = Ember;
 export default Ember.Service.extend({
 
   /**
-   * The keen-ajax service, extending ember-ajax.
+   * The base URL of the Keen API.
    *
-   * @property keenAjax
-   * @type {EmberKeen.Service.KeenAjax}
-   * @private
+   * @property baseUrl
+   * @type {String}
+   * @public
    */
-  keenAjax: Ember.inject.service(),
+  baseUrl: 'https://api.keen.io/3.0/projects',
 
   /**
    * The time in ms to wait until the queue should be sent.
@@ -184,16 +184,9 @@ export default Ember.Service.extend({
    * @returns {PromiseObject} A promise which resolves with the response JSON
    * @private
    */
-  _sendEvent(event, data = {}) {
+  _sendEvent(event, eventData = {}) {
     let url = this._buildSendURL(event);
-    let keenAjax = this.get('keenAjax');
-
-    return keenAjax.post(url, {
-      data,
-      xhrFields: {
-        withCredentials: false
-      }
-    });
+    return this._post(url, eventData);
   },
 
   /**
@@ -203,15 +196,33 @@ export default Ember.Service.extend({
    * @returns {PromiseObject} A promise which resolves with the response JSON
    * @private
    */
-  _sendEvents(data) {
+  _sendEvents(eventData) {
     let url = this._buildSendURL(null);
-    let keenAjax = this.get('keenAjax');
+    return this._post(url, eventData);
+  },
 
-    return keenAjax.post(url, {
-      data,
+  /**
+   * Send the data to the API.
+   *
+   * @method _post
+   * @param {String} url The URL to post to.
+   * @param {Object} data The data which should be sent to the API
+   * @returns {Ember.RSVP.Promise}
+   * @private
+   */
+  _post(url, data) {
+    return Ember.$.ajax({
+      type: 'POST',
+      headers: {
+        Authorization: get(this, 'writeKey')
+      },
+      url,
+      contentType: 'application/json',
       xhrFields: {
         withCredentials: false
-      }
+      },
+      data: JSON.stringify(data),
+      dataType: 'json'
     });
   },
 
@@ -238,11 +249,11 @@ export default Ember.Service.extend({
    * @private
    */
   _buildSendURL(event) {
-    let { projectId, writeKey } = getProperties(this, 'projectId', 'writeKey');
+    let { projectId, writeKey, baseUrl } = getProperties(this, 'projectId', 'writeKey', 'baseUrl');
     if (!event) {
-      return `/${projectId}/events?api_key=${writeKey}`;
+      return `${baseUrl}/${projectId}/events?api_key=${writeKey}`;
     }
-    return `/${projectId}/events/${event}?api_key=${writeKey}`;
+    return `${baseUrl}/${projectId}/events/${event}?api_key=${writeKey}`;
   }
 
 });

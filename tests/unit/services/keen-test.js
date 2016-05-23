@@ -1,9 +1,7 @@
 import { moduleFor, test } from 'ember-qunit';
 import Ember from 'ember';
 
-moduleFor('service:keen', 'Unit | Service | keen', {
-  needs: ['service:keen-ajax']
-});
+moduleFor('service:keen', 'Unit | Service | keen', {});
 
 test('it exists', function(assert) {
   let service = this.subject();
@@ -14,19 +12,15 @@ test('an error is thrown if projectId is not set', function(assert) {
   assert.expect(1);
 
   let mockAjaxResponse = null;
-  let MockAjax = Ember.Object.create({
-    post(url, options) {
+  let service = this.subject({
+    _post(url, data) {
       mockAjaxResponse = {
         mock: true,
         url,
-        options
+        data
       };
       return Ember.RSVP.resolve(mockAjaxResponse);
-    }
-  });
-
-  let service = this.subject({
-    keenAjax: MockAjax,
+    },
     writeKey: 'TEST_WRITE_KEY'
   });
 
@@ -38,19 +32,15 @@ test('an error is thrown if writeKey is not set', function(assert) {
   assert.expect(1);
 
   let mockAjaxResponse = null;
-  let MockAjax = Ember.Object.create({
-    post(url, options) {
+  let service = this.subject({
+    _post(url, data) {
       mockAjaxResponse = {
         mock: true,
         url,
-        options
+        data
       };
       return Ember.RSVP.resolve(mockAjaxResponse);
-    }
-  });
-
-  let service = this.subject({
-    keenAjax: MockAjax,
+    },
     projectId: 'TEST_PROJECT_ID'
   });
 
@@ -62,19 +52,15 @@ test('sending an event immediately works', function(assert) {
   assert.expect(3);
 
   let mockAjaxResponse = null;
-  let MockAjax = Ember.Object.create({
-    post(url, options) {
+  let service = this.subject({
+    _post(url, data) {
       mockAjaxResponse = {
         mock: true,
         url,
-        options
+        data
       };
       return Ember.RSVP.resolve(mockAjaxResponse);
-    }
-  });
-
-  let service = this.subject({
-    keenAjax: MockAjax,
+    },
     projectId: 'TEST_PROJECT_ID',
     writeKey: 'TEST_WRITE_KEY'
   });
@@ -83,8 +69,8 @@ test('sending an event immediately works', function(assert) {
   assert.equal(response, true, 'method returns true');
 
   Ember.run.later(this, () => {
-    assert.equal(mockAjaxResponse.url, '/TEST_PROJECT_ID/events/test-event?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
-    assert.equal(mockAjaxResponse.options.data.myProperty, true, 'data is correctly passed through');
+    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events/test-event?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
+    assert.equal(mockAjaxResponse.data.myProperty, true, 'data is correctly passed through');
   }, 1);
 });
 
@@ -92,19 +78,15 @@ test('sending events via the queue works', function(assert) {
   assert.expect(7);
 
   let mockAjaxResponse = null;
-  let MockAjax = Ember.Object.create({
-    post(url, options) {
+  let service = this.subject({
+    _post(url, data) {
       mockAjaxResponse = {
         mock: true,
         url,
-        options
+        data
       };
       return Ember.RSVP.resolve(mockAjaxResponse);
-    }
-  });
-
-  let service = this.subject({
-    keenAjax: MockAjax,
+    },
     projectId: 'TEST_PROJECT_ID',
     writeKey: 'TEST_WRITE_KEY',
     queueTime: 1
@@ -116,13 +98,13 @@ test('sending events via the queue works', function(assert) {
   service.sendEvent('test-event-2', { myProperty: 3 });
 
   Ember.run.later(this, () => {
-    assert.equal(mockAjaxResponse.url, '/TEST_PROJECT_ID/events?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
-    assert.equal(mockAjaxResponse.options.data['test-event'].length, 3);
-    assert.equal(mockAjaxResponse.options.data['test-event'][0].myProperty, 1);
-    assert.equal(mockAjaxResponse.options.data['test-event'][1].myProperty, 2);
-    assert.equal(mockAjaxResponse.options.data['test-event'][2].myProperty, 1);
-    assert.equal(mockAjaxResponse.options.data['test-event-2'].length, 1);
-    assert.equal(mockAjaxResponse.options.data['test-event-2'][0].myProperty, 3);
+    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
+    assert.equal(mockAjaxResponse.data['test-event'].length, 3);
+    assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
+    assert.equal(mockAjaxResponse.data['test-event'][1].myProperty, 2);
+    assert.equal(mockAjaxResponse.data['test-event'][2].myProperty, 1);
+    assert.equal(mockAjaxResponse.data['test-event-2'].length, 1);
+    assert.equal(mockAjaxResponse.data['test-event-2'][0].myProperty, 3);
   }, 1);
 });
 
@@ -130,19 +112,15 @@ test('sending multiple events immediately works', function(assert) {
   assert.expect(8);
 
   let mockAjaxResponse = null;
-  let MockAjax = Ember.Object.create({
-    post(url, options) {
+  let service = this.subject({
+    _post(url, data) {
       mockAjaxResponse = {
         mock: true,
         url,
-        options
+        data
       };
       return Ember.RSVP.resolve(mockAjaxResponse);
-    }
-  });
-
-  let service = this.subject({
-    keenAjax: MockAjax,
+    },
     projectId: 'TEST_PROJECT_ID',
     writeKey: 'TEST_WRITE_KEY'
   });
@@ -161,12 +139,12 @@ test('sending multiple events immediately works', function(assert) {
   assert.equal(response, true, 'method returns true');
 
   Ember.run.later(() => {
-    assert.equal(mockAjaxResponse.url, '/TEST_PROJECT_ID/events?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
-    assert.equal(mockAjaxResponse.options.data['test-event'].length, 3);
-    assert.equal(mockAjaxResponse.options.data['test-event'][0].myProperty, 1);
-    assert.equal(mockAjaxResponse.options.data['test-event'][1].myProperty, 2);
-    assert.equal(mockAjaxResponse.options.data['test-event'][2].myProperty, 1);
-    assert.equal(mockAjaxResponse.options.data['test-event-2'].length, 1);
-    assert.equal(mockAjaxResponse.options.data['test-event-2'][0].myProperty, 3);
+    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
+    assert.equal(mockAjaxResponse.data['test-event'].length, 3);
+    assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
+    assert.equal(mockAjaxResponse.data['test-event'][1].myProperty, 2);
+    assert.equal(mockAjaxResponse.data['test-event'][2].myProperty, 1);
+    assert.equal(mockAjaxResponse.data['test-event-2'].length, 1);
+    assert.equal(mockAjaxResponse.data['test-event-2'][0].myProperty, 3);
   }, 1);
 });
