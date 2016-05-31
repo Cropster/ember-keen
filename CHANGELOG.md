@@ -1,5 +1,9 @@
 # Changelog
 
+v0.3.1
+
+* Add `crossDomain: true` to `$.post` configuration
+
 v0.3.0
 
 * Remove ember-ajax dependency (use Ember.$.ajax instead)
