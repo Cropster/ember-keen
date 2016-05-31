@@ -218,6 +218,7 @@ export default Ember.Service.extend({
       },
       url,
       contentType: 'application/json',
+      crossDomain: true,
       xhrFields: {
         withCredentials: false
       },
