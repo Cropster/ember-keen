@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import config from 'ember-get-config';
+import DS from 'ember-data';
 
 const { computed, get, getProperties, set } = Ember;
 
@@ -69,6 +70,29 @@ export default Ember.Service.extend({
    * @public
    */
   canWrite: computed.and('projectId', 'writeKey'),
+
+  /**
+   * The read key is taken from KEEN_READ_KEY in your config/environment.js
+   *
+   * @property readKey
+   * @type {String}
+   * @private
+   * @readOnly
+   */
+  readKey: computed(function() {
+    return get(config, 'KEEN_READ_KEY');
+  }),
+
+  /**
+   * If reading from keen is possible.
+   * Is false if either projectId or readKey are not set.
+   *
+   * @property canWrite
+   * @type {Boolean}
+   * @readOnly
+   * @public
+   */
+  canRead: computed.and('projectId', 'readKey'),
 
   /**
    * The queue of events that should be sent.
@@ -165,6 +189,54 @@ export default Ember.Service.extend({
   },
 
   /**
+   * Make a query to the Keen-API.
+   *
+   * @method query
+   * @param {String} action The query action to perform, e.g. count or sum
+   * @param {String} event The event collection to query from
+   * @param {Object} data Additional data for the query, e.g. timeframe
+   * @return {Ember.RSVP.Promise}
+   * @public
+   */
+  query(action = 'count', event = null, data = {}) {
+    if (!get(this, 'canRead')) {
+      return false;
+    }
+
+    let url = this._buildReadURL(action);
+    if (event) {
+      // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+      data.event_collection = event;
+      // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+    }
+
+    if (!get(data, 'timeframe')) {
+      data.timeframe = 'this_1_month';
+    }
+
+    let ajax = this._get(url, data);
+
+    let promise = new Ember.RSVP.Promise((resolve, reject) => {
+      ajax.then((d) => {
+        if (d && get(d, 'result')) {
+          return resolve(d);
+        } else {
+          console.error(d);
+          return reject(new Error('Error when querying Keen.'));
+        }
+      }, (e) => {
+        if (e.responseJSON) {
+          e = e.responseJSON;
+        }
+        console.error(e);
+        return reject(new Error('Error when querying Keen.'));
+      });
+    });
+
+    return DS.PromiseObject.create({ promise });
+  },
+
+  /**
    * Process the queue and send all queued events to Keen.IO.
    *
    * @method _processQueue
@@ -228,6 +300,30 @@ export default Ember.Service.extend({
   },
 
   /**
+   * Read data from the API.
+   *
+   * @method _get
+   * @param {String} url The URL to get from.
+   * @returns {Ember.RSVP.Promise}
+   * @private
+   */
+  _get(url, data = {}) {
+    return Ember.$.ajax({
+      type: 'GET',
+      headers: {
+        Authorization: get(this, 'readKey')
+      },
+      url,
+      contentType: 'application/json',
+      crossDomain: true,
+      data,
+      xhrFields: {
+        withCredentials: false
+      }
+    });
+  },
+
+  /**
    * Log a request to the console.
    * A request will only be logged if environment === development & keen.logRequests = true in config/environment.js
    *
@@ -255,6 +351,19 @@ export default Ember.Service.extend({
       return `${baseUrl}/${projectId}/events?api_key=${writeKey}`;
     }
     return `${baseUrl}/${projectId}/events/${event}?api_key=${writeKey}`;
+  },
+
+  /**
+   * Build the Keen-URL to read from.
+   *
+   * @method _buildReadURL
+   * @param {String} action The action to read, e.g. 'count' or 'sum'
+   * @return {String}
+   * @private
+   */
+  _buildReadURL(action = 'count') {
+    let { projectId, readKey, baseUrl } = getProperties(this, 'projectId', 'readKey', 'baseUrl');
+    return `${baseUrl}/${projectId}/queries/${action}?api_key=${readKey}`;
   }
 
 });

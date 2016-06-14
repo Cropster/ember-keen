@@ -16,14 +16,15 @@ and the fact that it should not be necessary to include a library just to make a
 
 ## Configuration
 
-You will need to specify your Keen.IO project id and write key.
+You will need to specify your Keen.IO project id and write/read key. 
+You only need the write key if you want to record data, and the read key if you want to analyse data.
 The recommended way to do this is via [ember-cli-dotenv](https://github.com/fivetanley/ember-cli-dotenv):
 
 In you `ember-cli-build.js` add:
 
 ```js
 dotEnv: {
-  clientAllowedKeys: ['KEEN_PROJECT_ID', 'KEEN_WRITE_KEY']
+  clientAllowedKeys: ['KEEN_PROJECT_ID', 'KEEN_WRITE_KEY', 'KEEN_READ_KEY']
 }
 ```
 
@@ -32,6 +33,7 @@ And add a file `.env` in your project's root folder with the following content:
 ```
 KEEN_PROJECT_ID=MY-ID
 KEEN_WRITE_KEY=MY-WRITE-KEY
+KEEN_READ_KEY=MY-READ-KEY
 ```
 
 Alternatively, you can also just specify the keys in your `config/environment.js`:
@@ -40,7 +42,8 @@ Alternatively, you can also just specify the keys in your `config/environment.js
 var ENV = {
   /* ... */
   KEEN_PROJECT_ID: 'MY-ID',
-  KEEN_WRITE_KEY: 'MY-WRITE-KEY'
+  KEEN_WRITE_KEY: 'MY-WRITE-KEY',
+  KEEN_READ_KEY: 'MY-READ-KEY'
 }
 ```
 
@@ -131,6 +134,26 @@ this.get('keen').sendEvents({
 });
 ```
 
+### query(action, event, data)
+
+Query data from Keen.io. This will make a GET request and return a promise, which resolves with the data returned form the API.
+
+* `action` is the action to perform. This can be a simple action like `count` or something more complex like `funnel`.
+* `event` is the event collection to query. If this is set, `data.event_collection` will be set to this value.
+* `data` is other data that will be included in the query. This should include things like `timeframe`, `target_property` or anything else required by Keen.
+
+For more information about actions & the required data, see the [Keen.IO API Docs](https://keen.io/docs/api/#analyses). 
+You can also do things like [multi analyses](https://keen.io/docs/api/#multi-analysis), 
+[funnel analyses](https://keen.io/docs/api/#funnels) or [extractions](https://keen.io/docs/api/#extractions) with this method.
+
+Note that this will return a `DS.PromiseObject`. The actual response data is available under `result`, e.g.:
+
+```js
+this.get('keen').query('count', 'page-views').then(function(data) {
+  console.log(`There have been ${data.result} page views.`); 
+});
+```
+
 ### Mixin
 
 For your convenience, a mixin to track page views is also included. You can use it like this:
@@ -148,9 +171,10 @@ export default Ember.Route.extend(KeenTrackPageviewMixin, {
 
 ## Dependencies
 
-ember-keen has no dependencies - it uses `Ember.$.ajax()` under the hood to send data to Keen.IO.
-You can change this behavior by overwriting the `_post()` method in the `keen`-Service. 
-Below, you can see the default functionality.
+Because the ember-keen uses `DS.PromiseObject` for querying, it currently depends on ember-data. 
+Other than this, there are no dependencies - ember-keen uses `Ember.$.ajax()` under the hood to communicate with Keen.IO.
+You can change this behavior by overwriting the `_post()` / `_get()` methods in the `keen`-Service. 
+Below, you can see the default functionality for the `_post()` method.
 
 ```js
 // app/services/keen.js
