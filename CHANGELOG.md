@@ -1,5 +1,11 @@
 # Changelog
 
+v0.4.0
+
+* Add query() method to get data from keen
+* Add sendEventImmediately() method
+* Deprecate usage of sendInstantly option on sendEvent
+
 v0.3.1
 
 * Add `crossDomain: true` to `$.post` configuration
