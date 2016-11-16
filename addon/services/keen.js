@@ -1,8 +1,16 @@
 import Ember from 'ember';
 import config from 'ember-get-config';
 import DS from 'ember-data';
+import $ from 'jquery';
 
-const { computed, get, getProperties, set } = Ember;
+const {
+  computed,
+  get,
+  getProperties,
+  set,
+  deprecate,
+  RSVP
+} = Ember;
 
 /**
  * A service to work with the Keen.IO API.
@@ -141,13 +149,7 @@ export default Ember.Service.extend({
    * @public
    */
   sendEvent(event, data = {}, sendInstantly = false) {
-    let mergeData = get(this, 'mergeData') || {};
-    Ember.$.extend(data, {
-      keen: {
-        timestamp: new Date()
-      }
-    }, mergeData);
-
+    this._prepareEventData(data);
     this._logRequest(event, data);
 
     if (!get(this, 'canWrite')) {
@@ -155,6 +157,11 @@ export default Ember.Service.extend({
     }
 
     if (sendInstantly) {
+      deprecate(`Using the sendInstantly option has been deprecated and will be removed in the 1.0 release. 
+      Please use sendEventImmediately instead, which returns a promise.`, false, {
+        id: 'ember-keen.sendInstantly',
+        until: '1.0.0'
+      });
       this._sendEvent(event, data);
       return true;
     }
@@ -167,6 +174,38 @@ export default Ember.Service.extend({
     }
     Ember.run.debounce(this, this._processQueue, get(this, 'queueTime'));
     return true;
+  },
+
+  _prepareEventData(data) {
+    let mergeData = get(this, 'mergeData') || {};
+    $.extend(data, {
+      keen: {
+        timestamp: new Date()
+      }
+    }, mergeData);
+    return data;
+  },
+
+  /**
+   * Send an event immediately & return a promise.
+   *
+   * @method sendEventImmediately
+   * @param {String} event The name of the event collection
+   * @param {Object} data JSON data to send together with the event
+   * @return {RSVP.Promise}
+   * @public
+   */
+  sendEventImmediately(event, data = {}) {
+    this._prepareEventData(data);
+    this._logRequest(event, data);
+
+    if (!get(this, 'canWrite')) {
+      return RSVP.Promise.reject('You don\'t have write access to Keen.IO.');
+    }
+
+    return new RSVP.Promise((resolve, reject)=> {
+      this._sendEvent(event, data).then(resolve, reject);
+    });
   },
 
   /**

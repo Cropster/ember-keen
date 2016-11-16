@@ -82,11 +82,8 @@ export default Ember.Route.extend({
 By default, `sendEvent` will debounce sending a request to the Keen.IO API by 5 seconds. 
 This means that if you send 10 events in 7 seconds via `sendEvent`, 
 only one actual request will be made to the Keen.IO API.
-If you want to send an event immediately, you can pass an optional third parameter `true`:
 
-```js
-this.get('keen').sendEvent('button-click', { otherData: 1 }, true);
-```
+**sendInstantly has been deprecated. Please use keen.sendEventImmediately() instead.**
 
 You can also overwrite `mergeData` to return an object which will be merged with the data provided for every event
 sent via `sendEvent`:
@@ -114,6 +111,11 @@ With this configuration, the above request would result in the following data ob
 ```
 
 Note that this will not work for `sendEvents`.
+
+### sendEventImmediately(event, data)
+This will send an event immediately and return a promise, which resolves when the event has been successfully sent, 
+or rejects if an error occurs. This can be used to check if a message has actually been sent to the server. 
+It takes the same options as `sendEvent()`.
 
 ### sendEvents(data)
 
