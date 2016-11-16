@@ -1,7 +1,12 @@
 import Ember from 'ember';
 
-export default Ember.Route.extend({
-  keen: Ember.inject.service(),
+const {
+  Route,
+  inject
+} = Ember;
+
+export default Route.extend({
+  keen: inject.service(),
 
   actions: {
     trackSomething() {

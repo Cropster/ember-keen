@@ -1,6 +1,10 @@
 import Ember from 'ember';
 
-const { get } = Ember;
+const {
+  get,
+  Mixin,
+  inject
+} = Ember;
 
 /**
  * A mixin to track page views with Keen.IO.
@@ -10,8 +14,8 @@ const { get } = Ember;
  * @extends Ember.Mixin
  * @public
  */
-export default Ember.Mixin.create({
-  keen: Ember.inject.service(),
+export default Mixin.create({
+  keen: inject.service(),
 
   /**
    * Call the _trackPageView method on beforeModel.

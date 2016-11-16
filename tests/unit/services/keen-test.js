@@ -1,7 +1,11 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-
 import { moduleFor, test } from 'ember-qunit';
 import Ember from 'ember';
+
+const {
+  RSVP,
+  run
+} = Ember;
 
 moduleFor('service:keen', 'Unit | Service | keen', {});
 
@@ -21,7 +25,7 @@ test('false is returned  if projectId is not set', function(assert) {
         url,
         data
       };
-      return Ember.RSVP.resolve(mockAjaxResponse);
+      return RSVP.resolve(mockAjaxResponse);
     },
     writeKey: 'TEST_WRITE_KEY'
   });
@@ -41,7 +45,7 @@ test('false is returned if writeKey is not set & data should be sent', function(
         url,
         data
       };
-      return Ember.RSVP.resolve(mockAjaxResponse);
+      return RSVP.resolve(mockAjaxResponse);
     },
     projectId: 'TEST_PROJECT_ID'
   });
@@ -61,7 +65,7 @@ test('false is returned if readKey is not set & data should be read', function(a
         url,
         data
       };
-      return Ember.RSVP.resolve(mockAjaxResponse);
+      return RSVP.resolve(mockAjaxResponse);
     },
     projectId: 'TEST_PROJECT_ID'
   });
@@ -81,7 +85,7 @@ test('sending an event immediately works', function(assert) {
         url,
         data
       };
-      return Ember.RSVP.resolve(mockAjaxResponse);
+      return RSVP.resolve(mockAjaxResponse);
     },
     projectId: 'TEST_PROJECT_ID',
     writeKey: 'TEST_WRITE_KEY'
@@ -90,7 +94,7 @@ test('sending an event immediately works', function(assert) {
   let response = service.sendEvent('test-event', { myProperty: true }, true);
   assert.equal(response, true, 'method returns true');
 
-  Ember.run.next(this, () => {
+  run.next(this, () => {
     assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events/test-event?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
     assert.equal(mockAjaxResponse.data.myProperty, true, 'data is correctly passed through');
   });
@@ -107,7 +111,7 @@ test('sending events via the queue works', function(assert) {
         url,
         data
       };
-      return Ember.RSVP.resolve(mockAjaxResponse);
+      return RSVP.resolve(mockAjaxResponse);
     },
     projectId: 'TEST_PROJECT_ID',
     writeKey: 'TEST_WRITE_KEY',
@@ -119,7 +123,7 @@ test('sending events via the queue works', function(assert) {
   service.sendEvent('test-event', { myProperty: 1 });
   service.sendEvent('test-event-2', { myProperty: 3 });
 
-  Ember.run.next(this, () => {
+  run.next(this, () => {
     assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
     assert.equal(mockAjaxResponse.data['test-event'].length, 3);
     assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
@@ -141,7 +145,7 @@ test('sending multiple events immediately works', function(assert) {
         url,
         data
       };
-      return Ember.RSVP.resolve(mockAjaxResponse);
+      return RSVP.resolve(mockAjaxResponse);
     },
     projectId: 'TEST_PROJECT_ID',
     writeKey: 'TEST_WRITE_KEY'
@@ -160,7 +164,7 @@ test('sending multiple events immediately works', function(assert) {
 
   assert.equal(response, true, 'method returns true');
 
-  Ember.run.next(() => {
+  run.next(() => {
     assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
     assert.equal(mockAjaxResponse.data['test-event'].length, 3);
     assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
@@ -183,7 +187,7 @@ test('querying data works', function(assert) {
         data,
         result: true
       };
-      return Ember.RSVP.resolve(mockAjaxResponse);
+      return RSVP.resolve(mockAjaxResponse);
     },
     projectId: 'TEST_PROJECT_ID',
     readKey: 'TEST_READ_KEY'

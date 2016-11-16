@@ -9,8 +9,16 @@ const {
   getProperties,
   set,
   deprecate,
-  RSVP
+  RSVP,
+  run,
+  Service,
+  A: array,
+  Logger
 } = Ember;
+
+const {
+  PromiseObject
+} = DS;
 
 /**
  * A service to work with the Keen.IO API.
@@ -20,7 +28,7 @@ const {
  * @extends Ember.Service
  * @public
  */
-export default Ember.Service.extend({
+export default Service.extend({
 
   /**
    * The base URL of the Keen API.
@@ -170,9 +178,9 @@ export default Ember.Service.extend({
     if (get(queue, event)) {
       get(queue, event).pushObject(data);
     } else {
-      queue[event] = Ember.A([data]);
+      queue[event] = array([data]);
     }
-    Ember.run.debounce(this, this._processQueue, get(this, 'queueTime'));
+    run.debounce(this, this._processQueue, get(this, 'queueTime'));
     return true;
   },
 
@@ -255,7 +263,7 @@ export default Ember.Service.extend({
 
     let ajax = this._get(url, data);
 
-    let promise = new Ember.RSVP.Promise((resolve, reject) => {
+    let promise = new RSVP.Promise((resolve, reject) => {
       ajax.then((d) => {
         if (d && get(d, 'result')) {
           return resolve(d);
@@ -272,7 +280,7 @@ export default Ember.Service.extend({
       });
     });
 
-    return DS.PromiseObject.create({ promise });
+    return PromiseObject.create({ promise });
   },
 
   /**
@@ -322,7 +330,7 @@ export default Ember.Service.extend({
    * @private
    */
   _post(url, data) {
-    return Ember.$.ajax({
+    return $.ajax({
       type: 'POST',
       headers: {
         Authorization: get(this, 'writeKey')
@@ -347,7 +355,7 @@ export default Ember.Service.extend({
    * @private
    */
   _get(url, data = {}) {
-    return Ember.$.ajax({
+    return $.ajax({
       type: 'GET',
       headers: {
         Authorization: get(this, 'readKey')
@@ -373,7 +381,7 @@ export default Ember.Service.extend({
    */
   _logRequest(event, data) {
     if (get(this, '_shouldLogRequests')) {
-      Ember.Logger.info('Keen Track:', event, data);
+      Logger.info('Keen Track:', event, data);
     }
   },
 
