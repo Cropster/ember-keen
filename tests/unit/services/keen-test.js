@@ -74,7 +74,7 @@ test('false is returned if readKey is not set & data should be read', function(a
   assert.equal(response, false);
 });
 
-test('sending an event immediately works', function(assert) {
+test('sending an event immediately works (DEPRECATED: sendInstantly)', function(assert) {
   assert.expect(3);
 
   let mockAjaxResponse = null;
@@ -97,6 +97,34 @@ test('sending an event immediately works', function(assert) {
   run.next(this, () => {
     assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events/test-event?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
     assert.equal(mockAjaxResponse.data.myProperty, true, 'data is correctly passed through');
+  });
+});
+
+test('sending an event immediately works', function(assert) {
+  assert.expect(3);
+  let done = assert.async();
+
+  let mockAjaxResponse = null;
+  let service = this.subject({
+    _post(url, data) {
+      mockAjaxResponse = {
+        mock: true,
+        url,
+        data
+      };
+      return RSVP.resolve(mockAjaxResponse);
+    },
+    projectId: 'TEST_PROJECT_ID',
+    writeKey: 'TEST_WRITE_KEY'
+  });
+
+  let response = service.sendEventImmediately('test-event', { myProperty: true });
+  assert.ok(response instanceof RSVP.Promise, 'method returns Promise');
+
+  run.next(this, () => {
+    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events/test-event?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
+    assert.equal(mockAjaxResponse.data.myProperty, true, 'data is correctly passed through');
+    done();
   });
 });
 
