@@ -1,5 +1,9 @@
 # Changelog
 
+v0.4.1
+
+* Also track the previous page in keen-track-pageview mixin to allow tracking of user flow
+
 v0.4.0
 
 * Add query() method to get data from keen

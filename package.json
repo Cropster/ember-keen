@@ -1,6 +1,6 @@
 {
   "name": "ember-keen",
-  "version": "0.3.2",
+  "version": "0.4.1",
   "description": "An Ember add-on to work with Keen.IO",
   "directories": {
     "doc": "doc",
