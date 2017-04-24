@@ -2,6 +2,7 @@ import Ember from 'ember';
 
 const {
   get,
+  set,
   Mixin,
   inject
 } = Ember;
@@ -40,10 +41,18 @@ export default Mixin.create({
    */
   _trackPageView(transition = {}) {
     let keen = get(this, 'keen');
+    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
     let keenData = {
       page: get(transition, 'targetName'),
-      queryParams: get(transition, 'queryParams')
+      queryParams: get(transition, 'queryParams'),
+      previous_page: get(keen, '_previousPage')
     };
+    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+
+    set(keen, '_previousPage', {
+      page: keenData.page,
+      queryParams: keenData.queryParams
+    });
 
     keen.sendEvent('page-view', keenData);
   }
