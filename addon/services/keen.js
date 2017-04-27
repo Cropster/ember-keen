@@ -186,7 +186,7 @@ export default Service.extend({
 
   _prepareEventData(data) {
     let mergeData = get(this, 'mergeData') || {};
-    $.extend(data, {
+    $.extend(true, data, {
       keen: {
         timestamp: new Date()
       }
@@ -211,7 +211,7 @@ export default Service.extend({
       return RSVP.Promise.reject('You don\'t have write access to Keen.IO.');
     }
 
-    return new RSVP.Promise((resolve, reject)=> {
+    return new RSVP.Promise((resolve, reject) => {
       this._sendEvent(event, data).then(resolve, reject);
     });
   },

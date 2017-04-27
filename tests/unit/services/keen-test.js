@@ -4,7 +4,8 @@ import Ember from 'ember';
 
 const {
   RSVP,
-  run
+  run,
+  set
 } = Ember;
 
 moduleFor('service:keen', 'Unit | Service | keen', {});
@@ -227,4 +228,82 @@ test('querying data works', function(assert) {
   assert.equal(mockAjaxResponse.data.event_collection, 'my-event', 'event is correctly set on data');
   assert.equal(mockAjaxResponse.data.timeframe, 'this_1_month', 'default timeframe is correctly set');
   assert.equal(mockAjaxResponse.data.data1, 'test1', 'other data is correctly set');
+});
+
+test('prepararing data works', function(assert) {
+  let service = this.subject();
+
+  assert.deepEqual(service._prepareEventData({}), {
+    keen: {
+      timestamp: new Date()
+    }
+  }, 'it works with an empty data / mergeData');
+
+  set(service, 'mergeData', {
+    keen: {
+      otherProperty: true
+    }
+  });
+
+  assert.deepEqual(service._prepareEventData({}), {
+    keen: {
+      timestamp: new Date(),
+      otherProperty: true
+    }
+  }, 'it works with an data containing keen & mergeData');
+
+  set(service, 'mergeData', {
+    keen: {
+      timestamp: 'test'
+    }
+  });
+
+  assert.deepEqual(service._prepareEventData({}), {
+    keen: {
+      timestamp: 'test'
+    }
+  }, 'it allows overwriting timestamp');
+
+  set(service, 'mergeData', {
+    keen: {
+      timestamp: null
+    }
+  });
+
+  assert.deepEqual(service._prepareEventData({}), {
+    keen: {
+      timestamp: null
+    }
+  }, 'it allows overwriting timestamp with null');
+
+  set(service, 'mergeData', {
+    user: {
+      name: 'John',
+      id: 'Test',
+      nested: {
+        value: true
+      }
+    }
+  });
+
+  assert.deepEqual(service._prepareEventData({
+    test: '1',
+    user: {
+      lastName: 'Doe'
+    }
+  }), {
+    test: '1',
+    user: {
+      name: 'John',
+      lastName: 'Doe',
+      id: 'Test',
+      nested: {
+        value: true
+      }
+    },
+    keen: {
+      timestamp: new Date()
+    }
+  }, 'it allows merging with nested data');
+
 });
