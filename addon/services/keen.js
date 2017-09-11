@@ -8,7 +8,6 @@ const {
   get,
   getProperties,
   set,
-  deprecate,
   RSVP,
   run,
   Service,
@@ -154,26 +153,15 @@ export default Service.extend({
    * @method sendEvent
    * @param {String} event The name of the event collection
    * @param {Object} data JSON data to send together with the event
-   * @param {Boolean} sendInstantly If set to true, do not add to queue but send event instantly
    * @returns {Boolean} True if the event was sent/queued, otherwise false
    * @public
    */
-  sendEvent(event, data = {}, sendInstantly = false) {
+  sendEvent(event, data = {}) {
     this._prepareEventData(data);
     this._logRequest(event, data);
 
     if (!get(this, 'canWrite')) {
       return false;
-    }
-
-    if (sendInstantly) {
-      deprecate(`Using the sendInstantly option has been deprecated and will be removed in the 1.0 release. 
-      Please use sendEventImmediately instead, which returns a promise.`, false, {
-        id: 'ember-keen.sendInstantly',
-        until: '1.0.0'
-      });
-      this._sendEvent(event, data);
-      return true;
     }
 
     let queue = get(this, '_eventQueue');
