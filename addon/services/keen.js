@@ -2,6 +2,7 @@ import Ember from 'ember';
 import config from 'ember-get-config';
 import DS from 'ember-data';
 import $ from 'jquery';
+import performanceNow from 'ember-keen/utils/performance-now';
 
 const {
   computed,
@@ -147,6 +148,18 @@ export default Service.extend({
   }),
 
   /**
+   * A property that can be used for performance tracking.
+   * This is used by the keen-track-pageview mixin to get the load times of pages.
+   *
+   * @property _performanceTrack
+   * @type {Object}
+   * @protected
+   */
+  _performanceTrack: computed(function() {
+    return {};
+  }),
+
+  /**
    * Actually send an event to Keen.IO.
    * See https://keen.io/docs/data-collection/
    *
@@ -273,6 +286,64 @@ export default Service.extend({
     /* eslint-enable no-console */
 
     return PromiseObject.create({ promise });
+  },
+
+  /**
+   * Start tracking time for a performance check.
+   * You can pass in a key to track multiple times at once.
+   * Use the same key for this.endPerformanceTrack to get the corresponding time and re-set the timer.
+   *
+   * @method startPerformanceTrack
+   * @param {string} trackKey
+   * @return {Number}
+   * @public
+   */
+  startPerformanceTrack(trackKey = 'general') {
+    let start = performanceNow();
+
+    let performanceTrack = get(this, '_performanceTrack');
+    if (performanceTrack[trackKey]) {
+      return;
+    }
+
+    performanceTrack[trackKey] = start;
+    return start;
+  },
+
+  /**
+   * Stop tracking time for a performance check.
+   * Use the same key as you used for this.startPerformanceTrack.
+   * The timer will automatically be cleared for this key.
+   *
+   * @method endPerformanceTrack
+   * @param {string} trackKey
+   * @return {Number}
+   * @public
+   */
+  endPerformanceTrack(trackKey = 'general') {
+    let performanceTrack = get(this, '_performanceTrack');
+    let start = performanceTrack[trackKey];
+    let end = performanceNow();
+
+    this._clearPerformanceTrack(trackKey);
+
+    if (!start) {
+      return null;
+    }
+    return end - start;
+  },
+
+  /**
+   * Clear a tracking start time.
+   * You will usually not need to call this manually, as it's automatically be called by endPerformanceTrack
+   *
+   * @method _clearPerformanceTrack
+   * @param {string} trackKey
+   * @protected
+   */
+  _clearPerformanceTrack(trackKey = 'general') {
+    let performanceTrack = get(this, '_performanceTrack');
+    delete performanceTrack[trackKey];
   },
 
   /**

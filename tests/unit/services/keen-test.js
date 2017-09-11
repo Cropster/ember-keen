@@ -5,7 +5,8 @@ import Ember from 'ember';
 const {
   RSVP,
   run,
-  set
+  set,
+  get
 } = Ember;
 
 moduleFor('service:keen', 'Unit | Service | keen', {});
@@ -280,4 +281,51 @@ test('preparing data works', function(assert) {
     }
   }, 'it allows merging with nested data');
 
+});
+
+test('tracking performance works', function(assert) {
+  let done = assert.async();
+  let service = this.subject();
+
+  assert.deepEqual(get(service, '_performanceTrack'), {}, 'the performance track object is by default empty');
+  let startTime = service.startPerformanceTrack();
+  assert.deepEqual(get(service, '_performanceTrack'), { 'general': startTime }, 'the performance track now contains the start time');
+
+  run.later(this, function() {
+    let timeDiff = service.endPerformanceTrack();
+    assert.deepEqual(get(service, '_performanceTrack'), {}, 'the performance track object is now empty again');
+    assert.ok(timeDiff - 100 < 10, 'the time diff is correctly set (+/- 10%)');
+
+    done();
+  }, 100);
+});
+
+test('tracking different performance keys works', function(assert) {
+  let done = assert.async();
+  let service = this.subject();
+
+  assert.deepEqual(get(service, '_performanceTrack'), {}, 'the performance track object is by default empty');
+  let startTime = service.startPerformanceTrack('test1');
+  let startTime2 = service.startPerformanceTrack('test2');
+  assert.deepEqual(get(service, '_performanceTrack'), {
+    test1: startTime,
+    test2: startTime2
+  }, 'the performance track now contains the start times');
+
+  run.later(this, function() {
+    let timeDiff1 = service.endPerformanceTrack('test1');
+    assert.deepEqual(get(service, '_performanceTrack'), { test2: startTime2 }, 'the performance track object is now updated and only contains one item');
+
+    run.later(this, function() {
+      let timeDiff2 = service.endPerformanceTrack('test2');
+      let timeDiffEmpty = service.endPerformanceTrack('other');
+      assert.deepEqual(get(service, '_performanceTrack'), {}, 'the performance track object is now empty again');
+
+      assert.ok(timeDiff1 - 100 < 10, 'the time diff (1) is correctly set (+/- 10%)');
+      assert.ok(timeDiff2 - 200 < 10, 'the time diff (2) is correctly set (+/- 10%)');
+      assert.equal(timeDiffEmpty, null, 'endPerformanceTask returns null if the track key is not available');
+
+      done();
+    }, 100);
+  }, 100);
 });
