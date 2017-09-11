@@ -23,6 +23,17 @@ export default Mixin.create({
   keen: inject.service(),
 
   /**
+   * This property is set to true when the performance tracking has already started before this route is entered.
+   * This means that the model_load_time will include time from the parent route.
+   *
+   * @property _wasAlreadyTracking
+   * @type {Boolean}
+   * @default false
+   * @protected
+   */
+  _wasAlreadyTracking: false,
+
+  /**
    * Setup a listener to check how long the page view took.
    *
    * @method beforeModel
@@ -43,7 +54,13 @@ export default Mixin.create({
    * @protected
    */
   _setLoadTrackStart() {
-    get(this, 'keen').startPerformanceTrack('page-view');
+    let keen = get(this, 'keen');
+
+    if (keen.isPerformanceTracking('page-view')) {
+      set(this, '_wasAlreadyTracking', true);
+    }
+
+    keen.startPerformanceTrack('page-view');
   },
 
   /**
@@ -126,6 +143,11 @@ export default Mixin.create({
     let routeName = this._getTrackingRouteName();
     let modelLoadTime = this._getPageLoadTime();
 
+    // If the performance tracking started before this route, it means that it includes load time from it's parent
+    // This can have an effect on the model load time, and thus can be used to further drill down into load times
+    let wasAlreadyTracking = get(this, '_wasAlreadyTracking');
+    set(this, '_wasAlreadyTracking', false);
+
     let totalTime = renderTime + (modelLoadTime || 0);
 
     /* eslint-disable camelcase */
@@ -139,7 +161,8 @@ export default Mixin.create({
         render_time: renderTime,
         total_time_seconds: (totalTime / 1000).toFixed(2) * 1,
         model_load_time_seconds: (modelLoadTime / 1000).toFixed(2) * 1,
-        render_time_seconds: (renderTime / 1000).toFixed(2) * 1
+        render_time_seconds: (renderTime / 1000).toFixed(2) * 1,
+        model_load_time_includes_parent: wasAlreadyTracking
       }
     };
 

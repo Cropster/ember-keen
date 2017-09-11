@@ -14,6 +14,33 @@ and the fact that it should not be necessary to include a library just to make a
 
 * `ember install ember-keen`
 
+## Quick Start
+
+For a quick start with tracking page views, you'll need (as a minimum) the following:
+
+In your `config/environment.js`:
+
+```js
+var ENV = {
+  /* ... */
+  KEEN_PROJECT_ID: 'MY-ID',
+  KEEN_WRITE_KEY: 'MY-WRITE-KEY'
+}
+```
+
+In the route you want to track:
+
+```js
+import Ember from 'ember';
+import KeenTrackPageviewMixin from 'ember-keen/mixins/keen-track-pageview';
+
+export default Ember.Route.extend(KeenTrackPageviewMixin, {});
+```
+
+That's it! You'll now track each page view, together with key performance indicators (model load time & render time) & query params, for that route. In addition to this, you can easily track custom events, like when a user clicks on a specific button.
+
+For more details on how to configure ember-keen & how to send custom events, as well as for customization options of the page view tracking, see the following in-depth documentation.
+
 ## Configuration
 
 You will need to specify your Keen.IO project id and write/read key. 

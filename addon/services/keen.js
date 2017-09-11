@@ -334,6 +334,19 @@ export default Service.extend({
   },
 
   /**
+   * If performance is currently being tracked for a given key.
+   *
+   * @method isPerformanceTracking
+   * @param {String} trackKey
+   * @return {Boolean}
+   * @public
+   */
+  isPerformanceTracking(trackKey = 'general') {
+    let performanceTrack = get(this, '_performanceTrack');
+    return !!performanceTrack[trackKey];
+  },
+
+  /**
    * Clear a tracking start time.
    * You will usually not need to call this manually, as it's automatically be called by endPerformanceTrack
    *

@@ -5,8 +5,8 @@ const {
   Route,
   RSVP,
   run,
-  inject,
-  set
+  get,
+  inject
 } = Ember;
 
 export default Route.extend({
@@ -14,7 +14,7 @@ export default Route.extend({
   keen: inject.service(),
 
   beforeModel() {
-    set(this, 'keen.performanceTrackStart', performanceNow());
+    get(this, 'keen').startPerformanceTrack('page-view');
   },
 
   model() {
