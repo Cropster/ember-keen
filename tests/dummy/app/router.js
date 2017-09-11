@@ -12,6 +12,10 @@ const Router = EmberRouter.extend({
 
 Router.map(function() {
   this.route('page-view');
+
+  this.route('nested-route', function() {
+    this.route('sub-route');
+  });
 });
 
 export default Router;
