@@ -230,7 +230,7 @@ test('querying data works', function(assert) {
   assert.equal(mockAjaxResponse.data.data1, 'test1', 'other data is correctly set');
 });
 
-test('prepararing data works', function(assert) {
+test('preparing data works', function(assert) {
   let service = this.subject();
 
   assert.deepEqual(service._prepareEventData({}), {

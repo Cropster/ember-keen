@@ -117,7 +117,9 @@ export default Service.extend({
    * @type {Object}
    * @private
    */
-  _eventQueue: {},
+  _eventQueue: computed(function() {
+    return {};
+  }),
 
   /**
    * If requests should be logged to the console.
@@ -252,9 +254,9 @@ export default Service.extend({
 
     let url = this._buildReadURL(action);
     if (event) {
-      // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+      /* eslint-disable camelcase */
       data.event_collection = event;
-      // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+      /* eslint-enable camelcase */
     }
 
     if (!get(data, 'timeframe')) {
@@ -263,6 +265,7 @@ export default Service.extend({
 
     let ajax = this._get(url, data);
 
+    /* eslint-disable no-console */
     let promise = new RSVP.Promise((resolve, reject) => {
       ajax.then((d) => {
         if (d && get(d, 'result')) {
@@ -279,6 +282,7 @@ export default Service.extend({
         return reject(new Error('Error when querying Keen.'));
       });
     });
+    /* eslint-enable no-console */
 
     return PromiseObject.create({ promise });
   },
