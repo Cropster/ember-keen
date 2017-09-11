@@ -82,7 +82,8 @@ export default Mixin.create({
    * @protected
    */
   _getTrackingRouteName() {
-    return get(this, 'routeName');
+    // In engines, fullRouteName will give you the full path
+    return get(this, 'fullRouteName') || get(this, 'routeName');
   },
 
   /**
