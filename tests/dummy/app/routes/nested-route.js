@@ -1,5 +1,4 @@
 import Ember from 'ember';
-import performanceNow from 'ember-keen/utils/performance-now';
 
 const {
   Route,
