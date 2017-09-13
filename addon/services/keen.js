@@ -5,6 +5,7 @@ import $ from 'jquery';
 import performanceNow from 'ember-keen/utils/performance-now';
 
 const {
+  assign,
   computed,
   get,
   getProperties,
@@ -401,24 +402,15 @@ export default Service.extend({
    *
    * @method _post
    * @param {String} url The URL to post to.
-   * @param {Object} data The data which should be sent to the API
+   * @param {Object} data The data which should be sent to the API.
    * @returns {Ember.RSVP.Promise}
    * @private
    */
   _post(url, data) {
-    return $.ajax({
-      type: 'POST',
+    return this._makeRequest(url, data, {
       headers: {
         Authorization: get(this, 'writeKey')
-      },
-      url,
-      contentType: 'application/json',
-      crossDomain: true,
-      xhrFields: {
-        withCredentials: false
-      },
-      data: JSON.stringify(data),
-      dataType: 'json'
+      }
     });
   },
 
@@ -427,23 +419,41 @@ export default Service.extend({
    *
    * @method _get
    * @param {String} url The URL to get from.
+   * @param {Object} [data={}] Optional query configuration for API.
    * @returns {Ember.RSVP.Promise}
    * @private
    */
   _get(url, data = {}) {
-    return $.ajax({
-      type: 'GET',
+    return this._makeRequest(url, data, {
       headers: {
         Authorization: get(this, 'readKey')
-      },
-      url,
-      contentType: 'application/json',
-      crossDomain: true,
-      data,
-      xhrFields: {
-        withCredentials: false
       }
     });
+  },
+
+  /**
+   * Primitive method for performing ajax POST request.
+   *
+   * @method _request
+   * @param {String} url The URL to send POST to.
+   * @param {Object} [data={}] Custom request data.
+   * @param {Object} [options={}] Custom request options.
+   * @returns {Ember.RSVP.Promise}
+   * @private
+   */
+  _makeRequest(url, data = {}, options = {}) {
+    return $.ajax(
+      assign({
+        url,
+        type: 'POST',
+        contentType: 'application/json',
+        crossDomain: true,
+        data,
+        xhrFields: {
+          withCredentials: false
+        }
+      }, options)
+    );
   },
 
   /**
@@ -469,11 +479,11 @@ export default Service.extend({
    * @private
    */
   _buildSendURL(event) {
-    let { projectId, writeKey, baseUrl } = getProperties(this, 'projectId', 'writeKey', 'baseUrl');
+    let { projectId, baseUrl } = getProperties(this, 'projectId', 'baseUrl');
     if (!event) {
-      return `${baseUrl}/${projectId}/events?api_key=${writeKey}`;
+      return `${baseUrl}/${projectId}/events`;
     }
-    return `${baseUrl}/${projectId}/events/${event}?api_key=${writeKey}`;
+    return `${baseUrl}/${projectId}/events/${event}`;
   },
 
   /**
@@ -485,8 +495,8 @@ export default Service.extend({
    * @private
    */
   _buildReadURL(action = 'count') {
-    let { projectId, readKey, baseUrl } = getProperties(this, 'projectId', 'readKey', 'baseUrl');
-    return `${baseUrl}/${projectId}/queries/${action}?api_key=${readKey}`;
+    let { projectId, baseUrl } = getProperties(this, 'projectId', 'baseUrl');
+    return `${baseUrl}/${projectId}/queries/${action}`;
   }
 
 });
