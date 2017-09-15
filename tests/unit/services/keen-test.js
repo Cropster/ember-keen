@@ -98,7 +98,7 @@ test('sending an event immediately works', function(assert) {
   assert.ok(response instanceof RSVP.Promise, 'method returns Promise');
 
   run.next(this, () => {
-    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events/test-event?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
+    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events/test-event', 'Request URL is built correctly.');
     assert.equal(mockAjaxResponse.data.myProperty, true, 'data is correctly passed through');
     done();
   });
@@ -128,7 +128,7 @@ test('sending events via the queue works', function(assert) {
   service.sendEvent('test-event-2', { myProperty: 3 });
 
   run.next(this, () => {
-    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
+    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events', 'Request URL is built correctly.');
     assert.equal(mockAjaxResponse.data['test-event'].length, 3);
     assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
     assert.equal(mockAjaxResponse.data['test-event'][1].myProperty, 2);
@@ -169,7 +169,7 @@ test('sending multiple events immediately works', function(assert) {
   assert.equal(response, true, 'method returns true');
 
   run.next(() => {
-    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events?api_key=TEST_WRITE_KEY', 'Request URL is built correctly.');
+    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events', 'Request URL is built correctly.');
     assert.equal(mockAjaxResponse.data['test-event'].length, 3);
     assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
     assert.equal(mockAjaxResponse.data['test-event'][1].myProperty, 2);
@@ -199,7 +199,7 @@ test('querying data works', function(assert) {
 
   service.query('count', 'my-event', { data1: 'test1' });
 
-  assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/queries/count?api_key=TEST_READ_KEY', 'Request URL is built correctly.');
+  assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/queries/count', 'Request URL is built correctly.');
   assert.equal(mockAjaxResponse.data.event_collection, 'my-event', 'event is correctly set on data');
   assert.equal(mockAjaxResponse.data.timeframe, 'this_1_month', 'default timeframe is correctly set');
   assert.equal(mockAjaxResponse.data.data1, 'test1', 'other data is correctly set');
