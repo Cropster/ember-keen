@@ -13,8 +13,7 @@ const {
   RSVP,
   run,
   Service,
-  A: array,
-  Logger
+  A: array
 } = Ember;
 
 const {
@@ -467,7 +466,7 @@ export default Service.extend({
    */
   _logRequest(event, data) {
     if (get(this, '_shouldLogRequests')) {
-      Logger.info('Keen Track:', event, data);
+      console.info('Keen Track:', event, data); // eslint-disable-line
     }
   },
 
