@@ -1,13 +1,9 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-import { moduleFor, test } from 'ember-qunit';
-import Ember from 'ember';
+import RSVP from 'rsvp';
 
-const {
-  RSVP,
-  run,
-  set,
-  get
-} = Ember;
+import { run } from '@ember/runloop';
+import { get, set } from '@ember/object';
+import { moduleFor, test } from 'ember-qunit';
 
 moduleFor('service:keen', 'Unit | Service | keen', {});
 

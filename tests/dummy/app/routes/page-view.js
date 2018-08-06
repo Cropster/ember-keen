@@ -1,9 +1,5 @@
-import Ember from 'ember';
+import Route from '@ember/routing/route';
 import KeenTrackPageviewMixin from 'ember-keen/mixins/keen-track-pageview';
-
-const {
-  Route
-} = Ember;
 
 export default Route.extend(KeenTrackPageviewMixin, {
 

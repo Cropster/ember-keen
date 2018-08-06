@@ -1,20 +1,14 @@
-import Ember from 'ember';
+import { and } from '@ember/object/computed';
+import { assign } from '@ember/polyfills';
+import { set, getProperties, get, computed } from '@ember/object';
+import RSVP from 'rsvp';
+import { run } from '@ember/runloop';
+import Service from '@ember/service';
+import { A as array } from '@ember/array';
 import config from 'ember-get-config';
 import DS from 'ember-data';
 import $ from 'jquery';
 import performanceNow from 'ember-keen/utils/performance-now';
-
-const {
-  assign,
-  computed,
-  get,
-  getProperties,
-  set,
-  RSVP,
-  run,
-  Service,
-  A: array
-} = Ember;
 
 const {
   PromiseObject
@@ -85,7 +79,7 @@ export default Service.extend({
    * @readOnly
    * @public
    */
-  canWrite: computed.and('projectId', 'writeKey'),
+  canWrite: and('projectId', 'writeKey'),
 
   /**
    * The read key is taken from KEEN_READ_KEY in your config/environment.js
@@ -108,7 +102,7 @@ export default Service.extend({
    * @readOnly
    * @public
    */
-  canRead: computed.and('projectId', 'readKey'),
+  canRead: and('projectId', 'readKey'),
 
   /**
    * The queue of events that should be sent.

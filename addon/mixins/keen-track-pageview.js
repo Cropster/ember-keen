@@ -1,14 +1,9 @@
-import Ember from 'ember';
-
-const {
-  get,
-  set,
-  Mixin,
-  inject,
-  typeOf: getTypeOf,
-  run,
-  RSVP
-} = Ember;
+import { inject as service } from '@ember/service';
+import { set, get } from '@ember/object';
+import Mixin from '@ember/object/mixin';
+import { typeOf as getTypeOf } from '@ember/utils';
+import { run } from '@ember/runloop';
+import RSVP from 'rsvp';
 
 /**
  * A mixin to track page views with Keen.IO.
@@ -20,7 +15,7 @@ const {
  */
 export default Mixin.create({
 
-  keen: inject.service(),
+  keen: service(),
 
   /**
    * This property is set to true when the performance tracking has already started before this route is entered.
