@@ -1,7 +1,7 @@
 export default function performanceNow() {
-  if ('performance' in window && typeof window.performance.now === 'function' && typeof fastboot === 'undefined') {
+  if (typeof fastboot === 'undefined' && 'performance' in window && typeof window.performance.now === 'function') {
     return window.performance.now();
   } else {
-    return new Date().valueOf();
+    return (new Date()).valueOf();
   }
 }

@@ -183,11 +183,12 @@ export default Service.extend({
 
   _prepareEventData(data) {
     let mergeData = get(this, 'mergeData') || {};
-    $.extend(true, data, {
+    let baseData = {
       keen: {
         timestamp: new Date()
       }
-    }, mergeData);
+    };
+    $.extend(true, data, baseData, mergeData);
     return data;
   },
 
