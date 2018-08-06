@@ -1,7 +1,6 @@
 # Fetch Configuration
 
 ember-keen uses [ember-fetch](https://github.com/ember-cli/ember-fetch) to talk to the Keen.IO API.
-Other than that, there are no dependencies.
 
 If you want to overwrite this (e.g. to talk to a custom API or similar), there are a few internal hooks you can use:
 
@@ -48,7 +47,7 @@ export default KeenFetchService.extend({
 });
 ```
 
-If you do not want to use ember-fetch, but something else (e.g. $.ajax or ember-ajax), you can achieve this like this:
+If you do not want to use ember-fetch, but something else (e.g. `$.ajax` or ember-ajax), you can achieve this like this:
 
 ```js
 import KeenService from 'ember-keen/services/keen';
