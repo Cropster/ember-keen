@@ -21,10 +21,12 @@ For a quick start with tracking page views, you'll need (as a minimum) the follo
 In your `config/environment.js`:
 
 ```js
-var ENV = {
+let ENV = {
   /* ... */
-  KEEN_PROJECT_ID: 'MY-ID',
-  KEEN_WRITE_KEY: 'MY-WRITE-KEY'
+  keen: {
+    projectId: 'MY-ID',
+    writeKey: 'MY-WRITE-KEY'
+  }
 }
 ```
 
@@ -47,30 +49,16 @@ You will need to specify your Keen.IO project id and write/read key.
 You only need the write key if you want to record data, and the read key if you want to analyse data.
 The recommended way to do this is via [ember-cli-dotenv](https://github.com/fivetanley/ember-cli-dotenv):
 
-In you `ember-cli-build.js` add:
+Then, you can specify the keys in your `config/environment.js`:
 
 ```js
-dotEnv: {
-  clientAllowedKeys: ['KEEN_PROJECT_ID', 'KEEN_WRITE_KEY', 'KEEN_READ_KEY']
-}
-```
-
-And add a file `.env` in your project's root folder with the following content:
-
-```
-KEEN_PROJECT_ID=MY-ID
-KEEN_WRITE_KEY=MY-WRITE-KEY
-KEEN_READ_KEY=MY-READ-KEY
-```
-
-Alternatively, you can also just specify the keys in your `config/environment.js`:
-
-```js
-var ENV = {
+let ENV = {
   /* ... */
-  KEEN_PROJECT_ID: 'MY-ID',
-  KEEN_WRITE_KEY: 'MY-WRITE-KEY',
-  KEEN_READ_KEY: 'MY-READ-KEY'
+  keen: {
+    projectId: process.env.KEEN_PROJECT_ID,
+    writeKey: process.env.KEEN_WRITE_KEY,
+    readKey: process.env.KEEN_READ_KEY
+  }
 }
 ```
 
@@ -92,8 +80,8 @@ You can manually track events with methods provided by the `keen`-service:
 ### sendEvent(eventName, data)
 
 ```js
-export default Ember.Route.extend({
-  keen: Ember.inject.service(),
+export default Route.extend({
+  keen: service(),
   
   actions: {
     buttonClicked() {
@@ -117,7 +105,7 @@ sent via `sendEvent`:
 import KeenService from 'ember-keen/services/keen';
 
 export default KeenService.extend({
-  mergeData: Ember.computed('userSession', function() {
+  mergeData: computed('userSession', function() {
     return {
       currentUser: this.get('userSession.userId')
     };
@@ -173,7 +161,7 @@ For more information about actions & the required data, see the [Keen.IO API Doc
 You can also do things like [multi analyses](https://keen.io/docs/api/#multi-analysis), 
 [funnel analyses](https://keen.io/docs/api/#funnels) or [extractions](https://keen.io/docs/api/#extractions) with this method.
 
-Note that this will return a `DS.PromiseObject`. The actual response data is available under `result`, e.g.:
+Note that this will return a promise that resolves with a POJO. The actual response data is available under `result`, e.g.:
 
 ```js
 this.get('keen').query('count', 'page-views').then(function(data) {
@@ -186,10 +174,9 @@ this.get('keen').query('count', 'page-views').then(function(data) {
 For your convenience, a mixin to track page views is also included. You can use it like this:
 
 ```js
-import Ember from 'ember';
 import KeenTrackPageviewMixin from 'ember-keen/mixins/keen-track-pageview';
 
-export default Ember.Route.extend(KeenTrackPageviewMixin, {
+export default Route.extend(KeenTrackPageviewMixin, {
   beforeModel() {
     // If you use beforeModel, don't forget to run this._super(...arguments);
   },
@@ -279,9 +266,8 @@ For these cases, you can start the performance tracking manually. Take the follo
 
 ```js
 // app/routes/parent-route.js
-import Ember from 'ember';
-export default Ember.Route.extend({
-  keen: Ember.inject.service(),
+export default Route.extend({
+  keen: service(),
   
   beforeModel() {
     this.get('keen').startPerformanceTrack('page-view');
@@ -289,43 +275,88 @@ export default Ember.Route.extend({
 });
 
 // app/routes/parent-route/child-route.js
-import Ember from 'ember';
 import KeenTrackPageviewMixin from 'ember-keen/mixins/keen-track-pageview';
-export default Ember.Route.extend(KeenTrackPageviewMixin, {});
+export default Route.extend(KeenTrackPageviewMixin, {});
 ```
 
 This works, because calling `startPerformanceTrack()` with a key that is already started and not ended yet will be ignored. So the time that is tracked for the page view of the route `parent-route.child-route` will be based of the time when it started to load the beforeModel of the parent route.
 
 Note that while this functionality is used by the page view mixin, you can also use it yourself for other performance trackings. The render time is also tracked like this.
 
-## Dependencies
+## Dependencies / Fetch configuration
 
-Because ember-keen uses `DS.PromiseObject` for querying, it currently depends on ember-data. 
-Other than this, there are no dependencies - ember-keen uses `Ember.$.ajax()` under the hood to communicate with Keen.IO.
-You can change this behavior by overwriting the `_post()` / `_get()` methods in the `keen`-Service. 
-Below, you can see the default functionality for the `_post()` method.
+ember-keen uses [ember-fetch](https://github.com/ember-cli/ember-fetch) to talk to the Keen.IO API.
+Other than that, there are no dependencies.
+
+If you want to overwrite this (e.g. to talk to a custom API or similar), there are a few internal hooks you can use:
 
 ```js
 // app/services/keen.js
-import Ember from 'ember';
 import KeenService from 'ember-keen/services/keen';
 
 export default KeenService.extend({
-  _post(url, data) {
-    return Ember.$.ajax({
-      type: 'POST',
-      headers: {
-        Authorization: get(this, 'writeKey')
-      },
-      url,
-      contentType: 'application/json',
-      crossDomain: true,
-      xhrFields: {
-        withCredentials: false
-      },
-      data: JSON.stringify(data),
-      dataType: 'json'
-    });
-  }
+
+  // This actually make the API request
+  _makeRequest(url, data, apiKey , extraOptions) {},
+  
+  // This calls _makeRequest for write operations
+  _post(url, data) {},
+  
+  // This calls _makeRequest for read operations
+  _get(url, data) {},
+  
+  // Build the base URL for write operations
+  _buildWriteUrl(event) {},
+  
+  // Build the base URL for read operations
+  _buildReadUrl(action) {}
+  
 });
 ```
+
+By default, the fetch functionality is funneled through a `keen-fetch` service. It has three methods that you can overwrite:
+
+```js
+import KeenFetchService from 'ember-keen/services/keen-fetch';
+
+export default KeenFetchService.extend({
+
+  // This actually make the API request, and is called by keen._makeRequest
+  makeRequest(url, data, apiKey , extraOptions) {},
+  
+  // This builds the options for _makeRequest
+  _getFetchOptions(url, data, apiKey, extraOptions) {},
+  
+  // This builds the URL for _makeRequest
+  _getFetchUrl(url, data, apiKey, extraOptions) {}
+  
+});
+```
+
+If you do not want to use ember-fetch, but something else (e.g. $.ajax or ember-ajax), you can achieve this like this:
+
+```js
+import KeenService from 'ember-keen/services/keen';
+export default KeenService.extend({
+
+ keenFetch: null, // Remove dependency
+
+  _makeRequest(url, data, apiKey, options) {
+    return $.ajax(
+      assign({
+        url: `${url}?api_key=${apiKey}`,
+        type: 'POST',
+        contentType: 'application/json',
+        crossDomain: true,
+        data: JSON.stringify(data),
+        xhrFields: {
+          withCredentials: false
+        }
+      }, options)
+    );
+  }
+
+})
+```
+
+Don't forget to uninstall ember-fetch from your app. Alternatively, you can also overwrite the `keen-fetch` service.

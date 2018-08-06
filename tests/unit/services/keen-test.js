@@ -257,12 +257,16 @@ module('Unit | Service | keen', function(hooks) {
       }
     });
 
-    assert.deepEqual(service._prepareEventData({
+    result = service._prepareEventData({
       test: '1',
+      keen: {
+        timestamp: null
+      },
       user: {
         lastName: 'Doe'
       }
-    }), {
+    });
+    assert.deepEqual(result, {
       test: '1',
       user: {
         name: 'John',
@@ -273,7 +277,7 @@ module('Unit | Service | keen', function(hooks) {
         }
       },
       keen: {
-        timestamp: new Date()
+        timestamp: null
       }
     }, 'it allows merging with nested data');
 

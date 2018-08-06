@@ -1,5 +1,9 @@
 'use strict';
 
 module.exports = {
-  name: 'ember-keen'
+  name: 'ember-keen',
+
+  isDevelopingAddon() {
+    return true;
+  }
 };

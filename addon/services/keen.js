@@ -2,11 +2,10 @@ import { and } from '@ember/object/computed';
 import { set, getProperties, get, computed } from '@ember/object';
 import { Promise } from 'rsvp';
 import { debounce } from '@ember/runloop';
-import Service from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import config from 'ember-get-config';
 import performanceNow from 'ember-keen/utils/performance-now';
 import mergeDeep from 'ember-keen/utils/merge-deep';
-import fetch from 'fetch';
 
 /**
  * A service to work with the Keen.IO API.
@@ -17,6 +16,8 @@ import fetch from 'fetch';
  * @public
  */
 export default Service.extend({
+
+  keenFetch: service(),
 
   /**
    * The base URL of the Keen API.
@@ -410,8 +411,9 @@ export default Service.extend({
 
   /**
    * Primitive method for performing ajax POST requests.
+   * This calls `keenFetch.makeRequest` by default.
    *
-   * @method _request
+   * @method _makeRequest
    * @param {String} url The URL to send POST to.
    * @param {Object} [data={}] Custom request data.
    * @param {String} apiKey The API key to use for authentication
@@ -419,30 +421,8 @@ export default Service.extend({
    * @returns {Ember.RSVP.Promise}
    * @private
    */
-  _makeRequest(url, data = {}, apiKey = null, extraOptions = {}) {
-    let options = this._getFetchOptions(url, data, apiKey, extraOptions);
-    let fullUrl = this._getFetchUrl(url, data, apiKey, extraOptions);
-
-    return fetch(fullUrl, options).then(function(response) {
-      return response.json();
-    });
-  },
-
-  _getFetchOptions(url, data, apiKey, extraOptions = {}) {
-    // Note: The Authentication header does not work with CORS, as keen.io sends a wildcard Accept-Origin header
-    // This is not allowed by fetch, so we need to add the api key to the URL (in _getFetchUrl)
-    return mergeDeep({
-      method: 'POST',
-      mode: 'cors',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8'
-      }
-    }, extraOptions);
-  },
-
-  _getFetchUrl(url, data, apiKey) {
-    return `${url}?api_key=${apiKey}`;
+  _makeRequest() {
+    return get(this, 'keenFetch').makeRequest(...arguments);
   },
 
   /**
