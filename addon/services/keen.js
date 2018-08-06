@@ -9,6 +9,7 @@ import config from 'ember-get-config';
 import DS from 'ember-data';
 import $ from 'jquery';
 import performanceNow from 'ember-keen/utils/performance-now';
+import mergeDeep from 'ember-keen/utils/merge-deep';
 
 const {
   PromiseObject
@@ -164,8 +165,8 @@ export default Service.extend({
    * @public
    */
   sendEvent(event, data = {}) {
-    this._prepareEventData(data);
-    this._logRequest(event, data);
+    let parsedData = this._prepareEventData(data);
+    this._logRequest(event, parsedData);
 
     if (!get(this, 'canWrite')) {
       return false;
@@ -173,23 +174,12 @@ export default Service.extend({
 
     let queue = get(this, '_eventQueue');
     if (get(queue, event)) {
-      get(queue, event).pushObject(data);
+      get(queue, event).pushObject(parsedData);
     } else {
-      queue[event] = array([data]);
+      queue[event] = array([parsedData]);
     }
     run.debounce(this, this._processQueue, get(this, 'queueTime'));
     return true;
-  },
-
-  _prepareEventData(data) {
-    let mergeData = get(this, 'mergeData') || {};
-    let baseData = {
-      keen: {
-        timestamp: new Date()
-      }
-    };
-    $.extend(true, data, baseData, mergeData);
-    return data;
   },
 
   /**
@@ -202,16 +192,26 @@ export default Service.extend({
    * @public
    */
   sendEventImmediately(event, data = {}) {
-    this._prepareEventData(data);
-    this._logRequest(event, data);
+    let parsedData = this._prepareEventData(data);
+    this._logRequest(event, parsedData);
 
     if (!get(this, 'canWrite')) {
       return RSVP.Promise.reject('You don\'t have write access to Keen.IO.');
     }
 
     return new RSVP.Promise((resolve, reject) => {
-      this._sendEvent(event, data).then(resolve, reject);
+      this._sendEvent(event, parsedData).then(resolve, reject);
     });
+  },
+
+  _prepareEventData(data) {
+    let mergeData = get(this, 'mergeData') || {};
+    let baseData = {
+      keen: {
+        timestamp: new Date()
+      }
+    };
+    return mergeDeep(baseData, data, mergeData);
   },
 
   /**
@@ -361,9 +361,20 @@ export default Service.extend({
    * @private
    */
   _processQueue() {
-    let queue = get(this, '_eventQueue');
+    let queue = this._getEventQueue();
     this._sendEvents(queue);
     set(this, '_eventQueue', {});
+  },
+
+  _getEventQueue() {
+    let queue = get(this, '_eventQueue');
+
+    // When creating the POST request, it does not like Ember.Array
+    // So we make sure to convert them to plain arrays here
+    return Object.keys(queue).reduce((cleanedQueue, eventName) => {
+      cleanedQueue[eventName] = queue[eventName].toArray();
+      return cleanedQueue;
+    }, {});
   },
 
   /**
