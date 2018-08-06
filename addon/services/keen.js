@@ -49,7 +49,7 @@ export default Service.extend({
    * @readOnly
    */
   projectId: computed(function() {
-    return get(config, 'KEEN_PROJECT_ID');
+    return get(config, 'keen.projectId') || get(config, 'KEEN_PROJECT_ID');
   }),
 
   /**
@@ -61,7 +61,7 @@ export default Service.extend({
    * @readOnly
    */
   writeKey: computed(function() {
-    return get(config, 'KEEN_WRITE_KEY');
+    return get(config, 'keen.writeKey') || get(config, 'KEEN_WRITE_KEY');
   }),
 
   /**
@@ -84,7 +84,7 @@ export default Service.extend({
    * @readOnly
    */
   readKey: computed(function() {
-    return get(config, 'KEEN_READ_KEY');
+    return get(config, 'keen.readKey') || get(config, 'KEEN_READ_KEY');
   }),
 
   /**
