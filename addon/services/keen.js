@@ -241,7 +241,7 @@ export default Service.extend({
       return false;
     }
 
-    let url = this._buildReadURL(action);
+    let url = this._buildReadUrl(action);
     if (event) {
       /* eslint-disable camelcase */
       data.event_collection = event;
@@ -366,7 +366,7 @@ export default Service.extend({
    * @private
    */
   _sendEvent(event, eventData = {}) {
-    let url = this._buildSendURL(event);
+    let url = this._buildWriteUrl(event);
     return this._post(url, eventData);
   },
 
@@ -378,7 +378,7 @@ export default Service.extend({
    * @private
    */
   _sendEvents(eventData) {
-    let url = this._buildSendURL(null);
+    let url = this._buildWriteUrl(null);
     return this._post(url, eventData);
   },
 
@@ -464,10 +464,10 @@ export default Service.extend({
    * Build the Keen-URL to post to.
    *
    * @param {String} event If set, post to a single event collection, otherwise post to the general collection
-   * @returns {String} The built URIL
+   * @returns {String} The built URL
    * @private
    */
-  _buildSendURL(event) {
+  _buildWriteUrl(event) {
     let { projectId, baseUrl } = getProperties(this, 'projectId', 'baseUrl');
     if (!event) {
       return `${baseUrl}/${projectId}/events`;
@@ -483,7 +483,7 @@ export default Service.extend({
    * @return {String}
    * @private
    */
-  _buildReadURL(action = 'count') {
+  _buildReadUrl(action = 'count') {
     let { projectId, baseUrl } = getProperties(this, 'projectId', 'baseUrl');
     return `${baseUrl}/${projectId}/queries/${action}`;
   }
