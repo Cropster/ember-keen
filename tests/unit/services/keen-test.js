@@ -1,6 +1,5 @@
-import RSVP from 'rsvp';
-
-import { run } from '@ember/runloop';
+import { Promise } from 'rsvp';
+import { next, later } from '@ember/runloop';
 import { get, set } from '@ember/object';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
@@ -24,7 +23,7 @@ module('Unit | Service | keen', function(hooks) {
           url,
           data
         };
-        return RSVP.resolve(mockAjaxResponse);
+        return Promise.resolve(mockAjaxResponse);
       },
       writeKey: 'TEST_WRITE_KEY'
     });
@@ -44,7 +43,7 @@ module('Unit | Service | keen', function(hooks) {
           url,
           data
         };
-        return RSVP.resolve(mockAjaxResponse);
+        return Promise.resolve(mockAjaxResponse);
       },
       projectId: 'TEST_PROJECT_ID'
     });
@@ -64,7 +63,7 @@ module('Unit | Service | keen', function(hooks) {
           url,
           data
         };
-        return RSVP.resolve(mockAjaxResponse);
+        return Promise.resolve(mockAjaxResponse);
       },
       projectId: 'TEST_PROJECT_ID'
     });
@@ -73,10 +72,7 @@ module('Unit | Service | keen', function(hooks) {
     assert.equal(response, false);
   });
 
-  test('sending an event immediately works', function(assert) {
-    assert.expect(3);
-    let done = assert.async();
-
+  test('sending an event immediately works', async function(assert) {
     let mockAjaxResponse = null;
     let service = this.owner.factoryFor('service:keen').create({
       _post(url, data) {
@@ -85,20 +81,19 @@ module('Unit | Service | keen', function(hooks) {
           url,
           data
         };
-        return RSVP.resolve(mockAjaxResponse);
+        return Promise.resolve(mockAjaxResponse);
       },
       projectId: 'TEST_PROJECT_ID',
       writeKey: 'TEST_WRITE_KEY'
     });
 
     let response = service.sendEventImmediately('test-event', { myProperty: true });
-    assert.ok(response instanceof RSVP.Promise, 'method returns Promise');
+    assert.ok(response instanceof Promise, 'method returns Promise');
 
-    run.next(this, () => {
-      assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events/test-event', 'Request URL is built correctly.');
-      assert.equal(mockAjaxResponse.data.myProperty, true, 'data is correctly passed through');
-      done();
-    });
+    await response;
+
+    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events/test-event', 'Request URL is built correctly.');
+    assert.equal(mockAjaxResponse.data.myProperty, true, 'data is correctly passed through');
   });
 
   test('sending events via the queue works', function(assert) {
@@ -112,7 +107,7 @@ module('Unit | Service | keen', function(hooks) {
           url,
           data
         };
-        return RSVP.resolve(mockAjaxResponse);
+        return Promise.resolve(mockAjaxResponse);
       },
       projectId: 'TEST_PROJECT_ID',
       writeKey: 'TEST_WRITE_KEY',
@@ -124,7 +119,7 @@ module('Unit | Service | keen', function(hooks) {
     service.sendEvent('test-event', { myProperty: 1 });
     service.sendEvent('test-event-2', { myProperty: 3 });
 
-    run.next(this, () => {
+    next(this, () => {
       assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events', 'Request URL is built correctly.');
       assert.equal(mockAjaxResponse.data['test-event'].length, 3);
       assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
@@ -146,7 +141,7 @@ module('Unit | Service | keen', function(hooks) {
           url,
           data
         };
-        return RSVP.resolve(mockAjaxResponse);
+        return Promise.resolve(mockAjaxResponse);
       },
       projectId: 'TEST_PROJECT_ID',
       writeKey: 'TEST_WRITE_KEY'
@@ -165,7 +160,7 @@ module('Unit | Service | keen', function(hooks) {
 
     assert.equal(response, true, 'method returns true');
 
-    run.next(() => {
+    next(() => {
       assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events', 'Request URL is built correctly.');
       assert.equal(mockAjaxResponse.data['test-event'].length, 3);
       assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
@@ -188,7 +183,7 @@ module('Unit | Service | keen', function(hooks) {
           data,
           result: true
         };
-        return RSVP.resolve(mockAjaxResponse);
+        return Promise.resolve(mockAjaxResponse);
       },
       projectId: 'TEST_PROJECT_ID',
       readKey: 'TEST_READ_KEY'
@@ -205,9 +200,11 @@ module('Unit | Service | keen', function(hooks) {
   test('preparing data works', function(assert) {
     let service = this.owner.lookup('service:keen');
 
-    assert.deepEqual(service._prepareEventData({}), {
+    let result = service._prepareEventData({});
+    result.keen.timestamp = result.keen.timestamp.toString();
+    assert.deepEqual(result, {
       keen: {
-        timestamp: new Date()
+        timestamp: (new Date()).toString()
       }
     }, 'it works with an empty data / mergeData');
 
@@ -217,9 +214,11 @@ module('Unit | Service | keen', function(hooks) {
       }
     });
 
-    assert.deepEqual(service._prepareEventData({}), {
+    result = service._prepareEventData({});
+    result.keen.timestamp = result.keen.timestamp.toString();
+    assert.deepEqual(result, {
       keen: {
-        timestamp: new Date(),
+        timestamp: (new Date()).toString(),
         otherProperty: true
       }
     }, 'it works with an data containing keen & mergeData');
@@ -288,7 +287,7 @@ module('Unit | Service | keen', function(hooks) {
     let startTime = service.startPerformanceTrack();
     assert.deepEqual(get(service, '_performanceTrack'), { 'general': startTime }, 'the performance track now contains the start time');
 
-    run.later(this, function() {
+    later(this, function() {
       let timeDiff = service.endPerformanceTrack();
       assert.deepEqual(get(service, '_performanceTrack'), {}, 'the performance track object is now empty again');
       assert.ok(timeDiff - 100 < 10, 'the time diff is correctly set (+/- 10%)');
@@ -309,11 +308,11 @@ module('Unit | Service | keen', function(hooks) {
       test2: startTime2
     }, 'the performance track now contains the start times');
 
-    run.later(this, function() {
+    later(this, function() {
       let timeDiff1 = service.endPerformanceTrack('test1');
       assert.deepEqual(get(service, '_performanceTrack'), { test2: startTime2 }, 'the performance track object is now updated and only contains one item');
 
-      run.later(this, function() {
+      later(this, function() {
         let timeDiff2 = service.endPerformanceTrack('test2');
         let timeDiffEmpty = service.endPerformanceTrack('other');
         assert.deepEqual(get(service, '_performanceTrack'), {}, 'the performance track object is now empty again');

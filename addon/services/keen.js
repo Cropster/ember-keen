@@ -1,19 +1,12 @@
 import { and } from '@ember/object/computed';
-import { assign } from '@ember/polyfills';
 import { set, getProperties, get, computed } from '@ember/object';
-import RSVP from 'rsvp';
-import { run } from '@ember/runloop';
+import { Promise } from 'rsvp';
+import { debounce } from '@ember/runloop';
 import Service from '@ember/service';
-import { A as array } from '@ember/array';
 import config from 'ember-get-config';
-import DS from 'ember-data';
-import $ from 'jquery';
 import performanceNow from 'ember-keen/utils/performance-now';
 import mergeDeep from 'ember-keen/utils/merge-deep';
-
-const {
-  PromiseObject
-} = DS;
+import fetch from 'fetch';
 
 /**
  * A service to work with the Keen.IO API.
@@ -174,11 +167,11 @@ export default Service.extend({
 
     let queue = get(this, '_eventQueue');
     if (get(queue, event)) {
-      get(queue, event).pushObject(parsedData);
+      get(queue, event).push(parsedData);
     } else {
-      queue[event] = array([parsedData]);
+      queue[event] = [parsedData];
     }
-    run.debounce(this, this._processQueue, get(this, 'queueTime'));
+    debounce(this, this._processQueue, get(this, 'queueTime'));
     return true;
   },
 
@@ -196,10 +189,10 @@ export default Service.extend({
     this._logRequest(event, parsedData);
 
     if (!get(this, 'canWrite')) {
-      return RSVP.Promise.reject('You don\'t have write access to Keen.IO.');
+      return Promise.reject('You don\'t have write access to Keen.IO.');
     }
 
-    return new RSVP.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this._sendEvent(event, parsedData).then(resolve, reject);
     });
   },
@@ -262,7 +255,7 @@ export default Service.extend({
     let ajax = this._get(url, data);
 
     /* eslint-disable no-console */
-    let promise = new RSVP.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       ajax.then((d) => {
         if (d && get(d, 'result')) {
           return resolve(d);
@@ -279,8 +272,6 @@ export default Service.extend({
       });
     });
     /* eslint-enable no-console */
-
-    return PromiseObject.create({ promise });
   },
 
   /**
@@ -361,20 +352,9 @@ export default Service.extend({
    * @private
    */
   _processQueue() {
-    let queue = this._getEventQueue();
+    let queue = get(this, '_eventQueue');
     this._sendEvents(queue);
     set(this, '_eventQueue', {});
-  },
-
-  _getEventQueue() {
-    let queue = get(this, '_eventQueue');
-
-    // When creating the POST request, it does not like Ember.Array
-    // So we make sure to convert them to plain arrays here
-    return Object.keys(queue).reduce((cleanedQueue, eventName) => {
-      cleanedQueue[eventName] = queue[eventName].toArray();
-      return cleanedQueue;
-    }, {});
   },
 
   /**
@@ -412,11 +392,7 @@ export default Service.extend({
    * @private
    */
   _post(url, data) {
-    return this._makeRequest(url, data, {
-      headers: {
-        Authorization: get(this, 'writeKey')
-      }
-    });
+    return this._makeRequest(url, data, get(this, 'writeKey'), {});
   },
 
   /**
@@ -429,36 +405,44 @@ export default Service.extend({
    * @private
    */
   _get(url, data = {}) {
-    return this._makeRequest(url, data, {
-      headers: {
-        Authorization: get(this, 'readKey')
-      }
-    });
+    return this._makeRequest(url, data, get(this, 'readKey'), {});
   },
 
   /**
-   * Primitive method for performing ajax POST request.
+   * Primitive method for performing ajax POST requests.
    *
    * @method _request
    * @param {String} url The URL to send POST to.
    * @param {Object} [data={}] Custom request data.
-   * @param {Object} [options={}] Custom request options.
+   * @param {String} apiKey The API key to use for authentication
+   * @param {Object} [extraOptions={}] Custom request options.
    * @returns {Ember.RSVP.Promise}
    * @private
    */
-  _makeRequest(url, data = {}, options = {}) {
-    return $.ajax(
-      assign({
-        url,
-        type: 'POST',
-        contentType: 'application/json',
-        crossDomain: true,
-        data,
-        xhrFields: {
-          withCredentials: false
-        }
-      }, options)
-    );
+  _makeRequest(url, data = {}, apiKey = null, extraOptions = {}) {
+    let options = this._getFetchOptions(url, data, apiKey, extraOptions);
+    let fullUrl = this._getFetchUrl(url, data, apiKey, extraOptions);
+
+    return fetch(fullUrl, options).then(function(response) {
+      return response.json();
+    });
+  },
+
+  _getFetchOptions(url, data, apiKey, extraOptions = {}) {
+    // Note: The Authentication header does not work with CORS, as keen.io sends a wildcard Accept-Origin header
+    // This is not allowed by fetch, so we need to add the api key to the URL (in _getFetchUrl)
+    return mergeDeep({
+      method: 'POST',
+      mode: 'cors',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      }
+    }, extraOptions);
+  },
+
+  _getFetchUrl(url, data, apiKey) {
+    return `${url}?api_key=${apiKey}`;
   },
 
   /**
