@@ -28,7 +28,7 @@ export default KeenService.extend({
 });
 ```
 
-By default, the fetch functionality is funneled through a `keen-fetch` service. It has three methods that you can overwrite:
+By default, the fetch functionality is funneled through a `keen-fetch` service, which is generated on install. If you are upgrading, you can install it by running `ember g ember-keen`. It has three methods that you can overwrite:
 
 ```js
 import KeenFetchService from 'ember-keen/services/keen-fetch';
