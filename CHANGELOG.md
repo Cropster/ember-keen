@@ -1,5 +1,12 @@
 # Changelog
 
+v3.0.0
+
+* Make keen-fetch an optional service, as it otherwise lead to issues when using ember-keen without fetch
+  * If you're upgrading from 2.0.0, you'll need to run `ember g ember-keen`
+  * This will generate the keen-fetch service for you in your app
+  * If you do not want to use fetch, you can safely delete the keen-fetch service
+
 v2.0.0
 
 * Use ember-fetch instead of $.ajax 
