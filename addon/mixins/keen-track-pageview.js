@@ -173,9 +173,10 @@ export default Mixin.create({
 
   actions: {
     didTransition() {
+      this._super(...arguments);
       this._trackPageViewWithRender();
 
-      return this._super(...arguments);
+      return true;
     }
   }
 
