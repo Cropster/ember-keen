@@ -1,5 +1,10 @@
 # Changelog
 
+v3.1.0
+
+* Add new method `keen.trackAllPageViews()` (requires ember-source >= 3.6) - this replaces the current page view mixin
+* Deprecate the keen-track-pageview mixin
+
 v3.0.0
 
 * Make keen-fetch an optional service, as it otherwise lead to issues when using ember-keen without fetch
