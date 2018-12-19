@@ -1,6 +1,6 @@
 # ember-keen
 
-[![Build Status](https://travis-ci.org/mydea/ember-keen.svg?branch=master)](https://travis-ci.org/mydea/ember-keen)
+[![Build Status](https://travis-ci.org/Cropster/ember-keen.svg?branch=master)](https://travis-ci.org/Cropster/ember-keen)
 [![Ember Observer Score](https://emberobserver.com/badges/ember-keen.svg)](https://emberobserver.com/addons/ember-keen)
 
 This add-on allows working with Keen.IO without requiring the Keen.IO SDK. 
