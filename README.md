@@ -30,13 +30,20 @@ let ENV = {
 }
 ```
 
-In the route you want to track:
+Now in your application route, add the following code:
 
 ```js
 import Route from '@ember/routing/route';
-import KeenTrackPageviewMixin from 'ember-keen/mixins/keen-track-pageview';
+import { inject as service } from '@ember/service';
 
-export default Route.extend(KeenTrackPageviewMixin, {});
+export default Route.extend({
+  keen: service(),
+  
+  init() {
+    this._super(...arguments);
+    this.keen.trackAllPageViews();
+  }
+})
 ```
 
 That's it! You'll now track each page view, together with key performance indicators (model load time & render time) & query params, for that route. In addition to this, you can easily track custom events, like when a user clicks on a specific button.
@@ -150,8 +157,7 @@ this.get('keen').query('count', 'page-views').then(function(data) {
 
 ### Further information
 
-* [More about the page view mixin](docs/page-view-mixin.md)
-* [More about performance tracking](docs/performance.md)
+* [More about the page view tracking](docs/page-view-tracking.md)
 
 ## Fetch configuration
 

@@ -1,11 +1,12 @@
 import { and } from '@ember/object/computed';
 import { set, getProperties, get, computed } from '@ember/object';
 import { Promise } from 'rsvp';
-import { debounce } from '@ember/runloop';
+import { debounce, schedule } from '@ember/runloop';
 import Service, { inject as service } from '@ember/service';
 import config from 'ember-get-config';
 import performanceNow from 'ember-keen/utils/performance-now';
 import mergeDeep from 'ember-keen/utils/merge-deep';
+import { assert } from '@ember/debug';
 
 /**
  * A service to work with the Keen.IO API.
@@ -18,6 +19,7 @@ import mergeDeep from 'ember-keen/utils/merge-deep';
 export default Service.extend({
 
   keenFetch: service(),
+  router: service(),
 
   /**
    * The base URL of the Keen API.
@@ -149,6 +151,16 @@ export default Service.extend({
   }),
 
   /**
+   * If the automatic page view tracking has been activated.
+   *
+   * @property  _isTrackingPageViews
+   * @type {Boolean}
+   * @default false
+   * @protected
+   */
+  _isTrackingPageViews: false,
+
+  /**
    * Actually send an event to Keen.IO.
    * See https://keen.io/docs/data-collection/
    *
@@ -198,14 +210,40 @@ export default Service.extend({
     });
   },
 
-  _prepareEventData(data) {
-    let mergeData = get(this, 'mergeData') || {};
-    let baseData = {
-      keen: {
-        timestamp: new Date()
-      }
-    };
-    return mergeDeep(baseData, data, mergeData);
+  /**
+   * Start tracking all page views.
+   * This relies on new features of the router service added in ember-source@3.6, and makes it easy to
+   * capture all page views automatically.
+   *
+   * Usually, you'll want to call this in your application-route's `init()` hook, or similar.
+   *
+   * @method trackAllPageViews
+   * @public
+   */
+  trackAllPageViews() {
+    assert('You can only use `trackAllPageViews()` on ember-source >= 3.6', get(this, 'router.on'));
+    assert('You should only call `trackAllPageViews()` once.', !get(this, '_isTrackingPageViews'));
+
+    set(this, '_isTrackingPageViews', true);
+
+    this.router.on('routeWillChange', () => {
+      this.startPerformanceTrack('page-view');
+    });
+
+    this.router.on('routeDidChange', (transition) => {
+      let { to: toRouteInfo } = transition;
+      let modelLoadTime = this.endPerformanceTrack('page-view') || 0;
+
+      this.startPerformanceTrack('page-view-render-time');
+
+      schedule('afterRender', () => {
+        let renderTime = this.endPerformanceTrack('page-view-render-time') || 0;
+
+        let { name: routeName, queryParams } = toRouteInfo;
+
+        this._trackPageView({ routeName, queryParams, renderTime, modelLoadTime });
+      });
+    });
   },
 
   /**
@@ -331,6 +369,16 @@ export default Service.extend({
   isPerformanceTracking(trackKey = 'general') {
     let performanceTrack = get(this, '_performanceTrack');
     return !!performanceTrack[trackKey];
+  },
+
+  _prepareEventData(data) {
+    let mergeData = get(this, 'mergeData') || {};
+    let baseData = {
+      keen: {
+        timestamp: new Date()
+      }
+    };
+    return mergeDeep(baseData, data, mergeData);
   },
 
   /**
@@ -466,6 +514,33 @@ export default Service.extend({
   _buildReadUrl(action = 'count') {
     let { projectId, baseUrl } = getProperties(this, 'projectId', 'baseUrl');
     return `${baseUrl}/${projectId}/queries/${action}`;
+  },
+
+  _trackPageView({ routeName, queryParams, renderTime = 0, modelLoadTime = 0 }) {
+    let totalTime = renderTime + modelLoadTime;
+
+    /* eslint-disable camelcase */
+    let keenData = {
+      page: routeName,
+      query_params: queryParams,
+      previous_page: this._previousPage,
+      performance: {
+        total_time: totalTime,
+        model_load_time: modelLoadTime,
+        render_time: renderTime,
+        total_time_seconds: (totalTime / 1000).toFixed(2) * 1,
+        model_load_time_seconds: (modelLoadTime / 1000).toFixed(2) * 1,
+        render_time_seconds: (renderTime / 1000).toFixed(2) * 1
+      }
+    };
+
+    set(this, '_previousPage', {
+      page: keenData.page,
+      query_params: keenData.query_params
+    });
+    /* eslint-enable camelcase */
+
+    this.sendEvent('page-view', keenData);
   }
 
 });

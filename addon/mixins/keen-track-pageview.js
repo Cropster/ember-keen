@@ -4,6 +4,7 @@ import Mixin from '@ember/object/mixin';
 import { typeOf as getTypeOf } from '@ember/utils';
 import { run } from '@ember/runloop';
 import RSVP from 'rsvp';
+import { assert, deprecate } from '@ember/debug';
 
 /**
  * A mixin to track page views with Keen.IO.
@@ -38,6 +39,9 @@ export default Mixin.create({
    * @public
    */
   beforeModel() {
+    assert('You have set up automatic page view tracking - please remove the KeenTrackPageView mixin', !this.keen._isTrackingPageViews);
+    deprecate('The keen page view mixin has been deprecated in favor of using `keen.trackAllPageViews()`, which will automate tracking over all pages. This requires ember-source@3.6 to work.', false, { id: 'ember-keen.page-view-mixin', until: '4.0.0' });
+
     this._setLoadTrackStart();
     return this._super(...arguments);
   },
