@@ -10,7 +10,7 @@ The service also auto-combines your events to avoid multiple unnecessary request
 Compatibility
 ------------------------------------------------------------------------------
 
-* Ember.js v2.18 or above
+* Ember.js v2.18 or above (3.6 or above if using the automated pageview tracking)
 * Ember CLI v2.13 or above
 * Node.js v8 or above
 
