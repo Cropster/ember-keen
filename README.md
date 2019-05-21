@@ -7,6 +7,17 @@ This add-on allows working with Keen.IO without requiring the Keen.IO SDK.
 It provides a service to send events. In the future, reading events will also be supported.
 The service also auto-combines your events to avoid multiple unnecessary requests. 
 
+Compatibility
+------------------------------------------------------------------------------
+
+* Ember.js v2.18 or above
+* Ember CLI v2.13 or above
+* Node.js v8 or above
+
+
+Installation
+------------------------------------------------------------------------------
+
 This add-on was inspired by [ember-keen-tracking](https://github.com/plyfe/ember-keen-tracking),
 and the fact that it should not be necessary to include a library just to make a few Ajax-requests.
 
