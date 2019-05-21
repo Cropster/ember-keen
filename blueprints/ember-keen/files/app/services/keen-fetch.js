@@ -1,14 +1,8 @@
 import Service from '@ember/service';
 import fetch from 'fetch';
 import mergeDeep from 'ember-keen/utils/merge-deep';
-import { computed } from '@ember/object';
 
 export default Service.extend({
-
-  _fetch: computed(function() {
-    return fetch;
-  }),
-
   /**
    * Primitive method for performing ajax POST requests.
    *
@@ -24,7 +18,7 @@ export default Service.extend({
     let options = this._getFetchOptions(url, data, apiKey, extraOptions);
     let fullUrl = this._getFetchUrl(url, data, apiKey, extraOptions);
 
-    return this._fetch(fullUrl, options).then(function(response) {
+    return fetch(fullUrl, options).then(function(response) {
       return response.json();
     });
   },
@@ -45,5 +39,4 @@ export default Service.extend({
   _getFetchUrl(url, data, apiKey) {
     return `${url}?api_key=${apiKey}`;
   }
-
 });

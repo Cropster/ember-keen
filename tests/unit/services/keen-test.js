@@ -1,8 +1,10 @@
 import { Promise } from 'rsvp';
-import { next, later } from '@ember/runloop';
+import { later } from '@ember/runloop';
 import { get, set } from '@ember/object';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
+import KeenService from 'ember-keen/services/keen';
+import { settled } from '@ember/test-helpers';
 
 module('Unit | Service | keen', function(hooks) {
   setupTest(hooks);
@@ -13,10 +15,9 @@ module('Unit | Service | keen', function(hooks) {
   });
 
   test('false is returned  if projectId is not set', function(assert) {
-    assert.expect(1);
-
     let mockAjaxResponse = null;
-    let service = this.owner.factoryFor('service:keen').create({
+
+    let Keen = KeenService.extend({
       _post(url, data) {
         mockAjaxResponse = {
           mock: true,
@@ -27,6 +28,8 @@ module('Unit | Service | keen', function(hooks) {
       },
       writeKey: 'TEST_WRITE_KEY'
     });
+    this.owner.register('service:keen', Keen);
+    let service = this.owner.lookup('service:keen');
 
     let response = service.sendEvent('test-event');
     assert.equal(response, false);
@@ -36,7 +39,7 @@ module('Unit | Service | keen', function(hooks) {
     assert.expect(1);
 
     let mockAjaxResponse = null;
-    let service = this.owner.factoryFor('service:keen').create({
+    let Keen = KeenService.extend({
       _post(url, data) {
         mockAjaxResponse = {
           mock: true,
@@ -47,6 +50,8 @@ module('Unit | Service | keen', function(hooks) {
       },
       projectId: 'TEST_PROJECT_ID'
     });
+    this.owner.register('service:keen', Keen);
+    let service = this.owner.lookup('service:keen');
 
     let response = service.sendEvent('test-event');
     assert.equal(response, false);
@@ -56,8 +61,8 @@ module('Unit | Service | keen', function(hooks) {
     assert.expect(1);
 
     let mockAjaxResponse = null;
-    let service = this.owner.factoryFor('service:keen').create({
-      _get(url, data) {
+    let Keen = KeenService.extend({
+      _post(url, data) {
         mockAjaxResponse = {
           mock: true,
           url,
@@ -67,6 +72,8 @@ module('Unit | Service | keen', function(hooks) {
       },
       projectId: 'TEST_PROJECT_ID'
     });
+    this.owner.register('service:keen', Keen);
+    let service = this.owner.lookup('service:keen');
 
     let response = service.query('count');
     assert.equal(response, false);
@@ -74,7 +81,7 @@ module('Unit | Service | keen', function(hooks) {
 
   test('sending an event immediately works', async function(assert) {
     let mockAjaxResponse = null;
-    let service = this.owner.factoryFor('service:keen').create({
+    let Keen = KeenService.extend({
       _post(url, data) {
         mockAjaxResponse = {
           mock: true,
@@ -86,6 +93,8 @@ module('Unit | Service | keen', function(hooks) {
       projectId: 'TEST_PROJECT_ID',
       writeKey: 'TEST_WRITE_KEY'
     });
+    this.owner.register('service:keen', Keen);
+    let service = this.owner.lookup('service:keen');
 
     let response = service.sendEventImmediately('test-event', { myProperty: true });
     assert.ok(response instanceof Promise, 'method returns Promise');
@@ -96,11 +105,9 @@ module('Unit | Service | keen', function(hooks) {
     assert.equal(mockAjaxResponse.data.myProperty, true, 'data is correctly passed through');
   });
 
-  test('sending events via the queue works', function(assert) {
-    assert.expect(7);
-
+  test('sending events via the queue works', async function(assert) {
     let mockAjaxResponse = null;
-    let service = this.owner.factoryFor('service:keen').create({
+    let Keen = KeenService.extend({
       _post(url, data) {
         mockAjaxResponse = {
           mock: true,
@@ -113,28 +120,28 @@ module('Unit | Service | keen', function(hooks) {
       writeKey: 'TEST_WRITE_KEY',
       queueTime: 1
     });
+    this.owner.register('service:keen', Keen);
+    let service = this.owner.lookup('service:keen');
 
     service.sendEvent('test-event', { myProperty: 1 });
     service.sendEvent('test-event', { myProperty: 2 });
     service.sendEvent('test-event', { myProperty: 1 });
     service.sendEvent('test-event-2', { myProperty: 3 });
 
-    next(this, () => {
-      assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events', 'Request URL is built correctly.');
-      assert.equal(mockAjaxResponse.data['test-event'].length, 3);
-      assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
-      assert.equal(mockAjaxResponse.data['test-event'][1].myProperty, 2);
-      assert.equal(mockAjaxResponse.data['test-event'][2].myProperty, 1);
-      assert.equal(mockAjaxResponse.data['test-event-2'].length, 1);
-      assert.equal(mockAjaxResponse.data['test-event-2'][0].myProperty, 3);
-    });
+    await settled();
+
+    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events', 'Request URL is built correctly.');
+    assert.equal(mockAjaxResponse.data['test-event'].length, 3);
+    assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
+    assert.equal(mockAjaxResponse.data['test-event'][1].myProperty, 2);
+    assert.equal(mockAjaxResponse.data['test-event'][2].myProperty, 1);
+    assert.equal(mockAjaxResponse.data['test-event-2'].length, 1);
+    assert.equal(mockAjaxResponse.data['test-event-2'][0].myProperty, 3);
   });
 
-  test('sending multiple events immediately works', function(assert) {
-    assert.expect(8);
-
+  test('sending multiple events immediately works', async function(assert) {
     let mockAjaxResponse = null;
-    let service = this.owner.factoryFor('service:keen').create({
+    let Keen = KeenService.extend({
       _post(url, data) {
         mockAjaxResponse = {
           mock: true,
@@ -146,6 +153,8 @@ module('Unit | Service | keen', function(hooks) {
       projectId: 'TEST_PROJECT_ID',
       writeKey: 'TEST_WRITE_KEY'
     });
+    this.owner.register('service:keen', Keen);
+    let service = this.owner.lookup('service:keen');
 
     let response = service.sendEvents({
       'test-event': [
@@ -160,22 +169,22 @@ module('Unit | Service | keen', function(hooks) {
 
     assert.equal(response, true, 'method returns true');
 
-    next(() => {
-      assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events', 'Request URL is built correctly.');
-      assert.equal(mockAjaxResponse.data['test-event'].length, 3);
-      assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
-      assert.equal(mockAjaxResponse.data['test-event'][1].myProperty, 2);
-      assert.equal(mockAjaxResponse.data['test-event'][2].myProperty, 1);
-      assert.equal(mockAjaxResponse.data['test-event-2'].length, 1);
-      assert.equal(mockAjaxResponse.data['test-event-2'][0].myProperty, 3);
-    });
+    await settled();
+
+    assert.equal(mockAjaxResponse.url, 'https://api.keen.io/3.0/projects/TEST_PROJECT_ID/events', 'Request URL is built correctly.');
+    assert.equal(mockAjaxResponse.data['test-event'].length, 3);
+    assert.equal(mockAjaxResponse.data['test-event'][0].myProperty, 1);
+    assert.equal(mockAjaxResponse.data['test-event'][1].myProperty, 2);
+    assert.equal(mockAjaxResponse.data['test-event'][2].myProperty, 1);
+    assert.equal(mockAjaxResponse.data['test-event-2'].length, 1);
+    assert.equal(mockAjaxResponse.data['test-event-2'][0].myProperty, 3);
   });
 
   test('querying data works', function(assert) {
     assert.expect(4);
 
     let mockAjaxResponse = null;
-    let service = this.owner.factoryFor('service:keen').create({
+    let Keen = KeenService.extend({
       _get(url, data) {
         mockAjaxResponse = {
           mock: true,
@@ -188,6 +197,8 @@ module('Unit | Service | keen', function(hooks) {
       projectId: 'TEST_PROJECT_ID',
       readKey: 'TEST_READ_KEY'
     });
+    this.owner.register('service:keen', Keen);
+    let service = this.owner.lookup('service:keen');
 
     service.query('count', 'my-event', { data1: 'test1' });
 

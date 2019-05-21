@@ -17,7 +17,6 @@ import { assert } from '@ember/debug';
  * @public
  */
 export default Service.extend({
-
   keenFetch: service(),
   router: service(),
 
@@ -132,9 +131,7 @@ export default Service.extend({
    * @type {Object}
    * @public
    */
-  mergeData: computed(function() {
-    return {};
-  }),
+  mergeData: null,
 
   /**
    * A property that can be used for performance tracking.
