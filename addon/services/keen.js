@@ -108,9 +108,7 @@ export default Service.extend({
    * @type {Object}
    * @private
    */
-  _eventQueue: computed(function() {
-    return {};
-  }),
+  _eventQueue: null,
 
   /**
    * If requests should be logged to the console.
@@ -159,6 +157,14 @@ export default Service.extend({
    * @protected
    */
   _isTrackingPageViews: false,
+
+  init() {
+    this._super(...arguments);
+
+    if (!this._eventQueue) {
+      set(this, '_eventQueue', {});
+    }
+  },
 
   /**
    * Actually send an event to Keen.IO.
