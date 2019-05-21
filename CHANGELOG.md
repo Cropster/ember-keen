@@ -1,5 +1,10 @@
 # Changelog
 
+v3.2.0
+
+* Avoid overriding computed properties
+* [INTERNAL] Update dev dependencies
+
 v3.1.0
 
 * Add new method `keen.trackAllPageViews()` (requires ember-source >= 3.6) - this replaces the current page view mixin
